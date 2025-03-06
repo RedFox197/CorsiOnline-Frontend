@@ -20,7 +20,6 @@ import { RouterLink, RouterView } from 'vue-router'
 
 <style scoped>
 nav {
-  position: fixed;
 
   top: 0;
 
@@ -54,11 +53,8 @@ nav a.router-link-exact-active {
 }
 
 header {
-  margin-top: 60px; /* Spazio per la barra di navigazione */
 
   text-align: center;
-
-  padding: 2rem 0;
 }
 
 .logo {
