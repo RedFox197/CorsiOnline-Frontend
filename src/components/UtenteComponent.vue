@@ -7,17 +7,23 @@
         {{utente.nome}} {{utente.cognome}}</p>
     </table>
     <table>
+      <h1>Ruolo</h1>
+      <p v-if="utenti.length == 0">Nessun ruolo presente</p>
+      <p v-for="utente in utenti" :key="utente.id">
+        {{ formatRuolo(utente.ruolo) }} </p>
+    </table>
+    <table>
       <h1>Classe</h1>
       <p v-if="utenti.length == 0">Nessuna classe presente</p>
       <p v-for = "utente in utenti" :key="utente.id">
-        {{ utente.classe.nome }}
+        {{ utente.classe?.nome }}
       </p>
     </table>
     <table>
       <h1>Corso</h1>
       <p v-if="utenti.length == 0">Nessun corso presente</p>
       <p v-for = "utente in utenti" :key="utente.id">
-        {{ utente.corso.nome }}
+        {{ utente.corso?.nome }}
       </p>
     </table>
 
@@ -30,7 +36,18 @@
 import { onMounted, ref } from 'vue'
 import axios from 'axios'
 
-const utenti = ref([])
+const utenti = ref([
+  { id: 1, ruolo: 'ADMIN' },
+  { id: 2, ruolo: 'USER' },
+  { id: 3, ruolo: 'GUEST' }
+])
+
+//formatto il carattere di ruolo
+
+const formatRuolo = (ruolo) => {
+  return ruolo.charAt(0).toUpperCase() + ruolo.slice(1).toLowerCase();
+}
+
 const classi = ref([])
 
 
@@ -41,7 +58,7 @@ const init = async () => {
     utenti.value = resUtenti.data
     console.log('Utenti ricevuti:', utenti.value)
 
-    const resClassi = await axios.get('http://localhost:8080/classe')
+    const resClassi = await axios.get('http://localhost:8080/classe/all')
     console.log('Risposta API per i brand:', resClassi)
     classi.value = resClassi.data
     console.log('Classi ricevute:', classi.value)
@@ -51,6 +68,10 @@ const init = async () => {
 }
 
 onMounted(init)
+
+//formattiamo ruolo
+
+
 
 /*import { onMounted, ref } from 'vue'
 
@@ -91,7 +112,7 @@ body{
   display: flex;;
   border: 1px solid black;
   border-radius: 5px;
-  width: 28%;
+  width: 35%;
   height: auto;
 }
 
