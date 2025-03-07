@@ -1,17 +1,17 @@
 <template>
   <div class="container">
-    <!-- Titolo in alto -->
     <h1 class="title">Ecco a te i corsi</h1>
 
-    <!-- Lista dei corsi -->
     <div v-if="corsi.length > 0" class="corsi-list">
       <div v-for="corso in corsi" :key="corso.id" class="corso-item">
         <p>{{ corso.titolo }} - {{ corso.descrizione }}</p>
+        <button @click="$router.push(`/corso/${corso.id}`)" class="details-button">
+          Dettagli
+        </button>
       </div>
     </div>
     <p v-else class="text-gray-500">Nessun corso disponibile.</p>
 
-    <!-- Pulsante dopo la lista -->
     <button @click="$router.push('/corso/gestione')" class="bg-blue-500 text-white px-4 py-2 rounded mb-4">
       + Aggiungi Corso
     </button>
@@ -32,7 +32,6 @@ export default {
 </script>
 
 <style scoped>
-/* Contenitore generale */
 .container {
   display: flex;
   flex-direction: column;
@@ -42,7 +41,6 @@ export default {
   padding-top: 50px;
 }
 
-/* Stile del titolo */
 .title {
   font-size: 2.5rem;
   font-weight: bold;
@@ -50,7 +48,6 @@ export default {
   margin-bottom: 20px;
 }
 
-/* Stile lista corsi */
 .corsi-list {
   width: 80%;
   max-width: 600px;
@@ -63,20 +60,23 @@ export default {
   margin-bottom: 10px;
   border-radius: 5px;
   border: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-/* Stile del pulsante */
-.button {
+.details-button {
   background-color: #007bff;
   color: white;
-  padding: 10px 20px;
+  padding: 5px 10px;
   border: none;
   border-radius: 5px;
-  font-size: 1rem;
+  font-size: 0.9rem;
   cursor: pointer;
+  margin-left: 10px;
 }
 
-.button:hover {
+.details-button:hover {
   background-color: #0056b3;
 }
 </style>

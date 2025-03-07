@@ -1,7 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import CorsoView from '@/views/DashboardCorsoView.vue'
-import GestioneCorsoView from '@/views/GestioneCorso.vue'
+import GestioneCorsoView from '@/views/GestioneCorsoView.vue'
+import DettaglioCorsoView from '@/views/DettaglioCorsoView.vue'
+import ModificaCorsoView from '@/views/ModificaCorsoView.vue'
 import EsameView from '@/views/EsameView.vue'
 import UtenteView from '@/views/UtenteView.vue'
 import ClasseView from '@/views/ClasseView.vue'
@@ -24,6 +26,16 @@ const router = createRouter({
       name: 'gestione-corso',
       component: GestioneCorsoView,
     },
+    { path: '/corso/:id',
+      name: 'dettagli-corso',
+      component: DettaglioCorsoView
+    }
+    ,
+    { path: '/corso/:id/modifica',
+      name: 'modifica-corso',
+      component: ModificaCorsoView
+    }
+    ,
     {
       path: '/esame',
       name: 'esame',
