@@ -69,38 +69,6 @@ const init = async () => {
 
 onMounted(init)
 
-//formattiamo ruolo
-
-
-
-/*import { onMounted, ref } from 'vue'
-
-const utenti = ref([])
-const classi = ref([])
-
-// Dati di test JSON
-const testUtenti = [
-  {
-    "id": 1,
-    "nome": "Mario",
-    "cognome": "Rossi",
-    "classe": { "id": 1, "nome": "MA001" },
-    "corso" : { "id": 1, "nome": "Matematica" }
-  },
-  {
-    "id": 2,
-    "nome": "Giulia",
-    "cognome": "Bianchi",
-    "classe": { "id": 2, "nome": "JA001" },
-    "corso": { "id": 1, "nome": "Java" }
-  }
-]
-
-const init = () => {
-  utenti.value = testUtenti
-}
-
-onMounted(init)*/
 </script>
 
 <style>
