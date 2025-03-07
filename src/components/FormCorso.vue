@@ -1,22 +1,3 @@
-<template>
-  <div class="p-4 border rounded-lg shadow">
-    <label class="block mb-2">Titolo</label>
-    <input v-model="corsoLocal.titolo" class="border p-2 w-full mb-2" placeholder="Titolo del corso">
-
-    <label class="block mb-2">Descrizione</label>
-    <textarea v-model="corsoLocal.descrizione" class="border p-2 w-full mb-2" placeholder="Descrizione"></textarea>
-
-    <div class="mt-4 flex gap-2">
-      <button @click="salva" class="bg-green-500 text-white px-4 py-2 rounded">
-        Salva
-      </button>
-      <button @click="$emit('chiudi')" class="bg-gray-500 text-white px-4 py-2 rounded">
-        Annulla
-      </button>
-    </div>
-  </div>
-</template>
-
 <script>
 export default {
   props: {
@@ -25,16 +6,43 @@ export default {
   },
   data() {
     return {
-      corsoLocal: { ...this.corso }
+      corsoLocal: { ...this.corso, docenti: [], studenti: [] },
+      docenteSelezionato: "",
+      studenteSelezionato: "",
+      // Dati statici per ora (da sostituire con API in futuro)
+      docentiDisponibili: [
+        { id: 1, nome: "Mario", cognome: "Rossi" },
+        { id: 2, nome: "Laura", cognome: "Bianchi" }
+      ],
+      studentiDisponibili: [
+        { id: 3, nome: "Anna", cognome: "Verdi" },
+        { id: 4, nome: "Luca", cognome: "Neri" }
+      ]
     };
   },
   methods: {
+    aggiungiDocente() {
+      if (this.docenteSelezionato && !this.corsoLocal.docenti.includes(this.docenteSelezionato)) {
+        this.corsoLocal.docenti.push(this.docenteSelezionato);
+      }
+      this.docenteSelezionato = "";
+    },
+    rimuoviDocente(id) {
+      this.corsoLocal.docenti = this.corsoLocal.docenti.filter(d => d.id !== id);
+    },
+    aggiungiStudente() {
+      if (this.studenteSelezionato && !this.corsoLocal.studenti.includes(this.studenteSelezionato)) {
+        this.corsoLocal.studenti.push(this.studenteSelezionato);
+      }
+      this.studenteSelezionato = "";
+    },
+    rimuoviStudente(id) {
+      this.corsoLocal.studenti = this.corsoLocal.studenti.filter(s => s.id !== id);
+    },
     salva() {
+      console.log("Dati inviati:", this.corsoLocal);
       this.$emit("salva", this.corsoLocal);
     }
   }
 };
 </script>
-
-<style scoped>
-</style>

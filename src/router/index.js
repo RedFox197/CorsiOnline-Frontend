@@ -21,7 +21,7 @@ const router = createRouter({
     },
     {
       path: '/corso/gestione',
-      name: 'corso/gestione',
+      name: 'gestione-corso',
       component: GestioneCorsoView,
     },
     {

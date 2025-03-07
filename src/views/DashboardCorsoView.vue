@@ -12,7 +12,7 @@
     <p v-else class="text-gray-500">Nessun corso disponibile.</p>
 
     <!-- Pulsante dopo la lista -->
-    <button @click="$router.push('/gestione-corso')" class="button">
+    <button @click="$router.push('/corso/gestione')" class="bg-blue-500 text-white px-4 py-2 rounded mb-4">
       + Aggiungi Corso
     </button>
   </div>
