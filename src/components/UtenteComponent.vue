@@ -1,93 +1,142 @@
 <template>
-  <div class = "container">
-    <table>
+  <div class="container">
+    <div class="section">
       <h1>Utenti</h1>
-      <p v-if="utenti.length == 0">Nessun utente presente</p>
+      <p v-if="utenti.length === 0">Nessun utente presente</p>
       <p v-for="utente in utenti" :key="utente.id">
-        {{utente.nome}} {{utente.cognome}}</p>
-    </table>
-    <table>
+        {{ utente.nome }} {{ utente.cognome }}
+        <button @click="mostraInfoStudente(utente)">
+          Info
+        </button>
+      </p>
+    </div>
+
+    <div class="section">
       <h1>Ruolo</h1>
-      <p v-if="utenti.length == 0">Nessun ruolo presente</p>
+      <p v-if="utenti.length === 0">Nessun ruolo presente</p>
       <p v-for="utente in utenti" :key="utente.id">
-        {{ formatRuolo(utente.ruolo) }} </p>
-    </table>
-    <table>
+        {{ formatRuolo(utente.ruolo) }}
+      </p>
+    </div>
+
+    <div class="section">
       <h1>Classe</h1>
-      <p v-if="utenti.length == 0">Nessuna classe presente</p>
-      <p v-for = "utente in utenti" :key="utente.id">
-        {{ utente.classe?.nome }}
+      <p v-if="utenti.length === 0">Nessuna classe presente</p>
+      <p v-for="utente in utenti" :key="utente.id">
+        {{ utente.classe?.nome || 'N/A' }}
       </p>
-    </table>
-    <table>
+    </div>
+
+    <div class="section">
       <h1>Corso</h1>
-      <p v-if="utenti.length == 0">Nessun corso presente</p>
-      <p v-for = "utente in utenti" :key="utente.id">
-        {{ utente.corso?.nome }}
+      <p v-if="utenti.length === 0">Nessun corso presente</p>
+      <p v-for="utente in utenti" :key="utente.id">
+        {{ utente.corso?.nome || 'N/A' }}
       </p>
-    </table>
-
-
+    </div>
   </div>
+
+  <table class="info-table" v-if="studenteSelezionato">
+    <h1>Info</h1>
+    <tr><td>ID:</td><td>{{ studenteSelezionato.id }}</td></tr>
+    <tr><td>Nome:</td><td>{{ studenteSelezionato.nome }}</td></tr>
+    <tr><td>Cognome:</td><td>{{ studenteSelezionato.cognome }}</td></tr>
+    <tr><td>Email:</td><td>{{ studenteSelezionato.email }}</td></tr>
+    <tr><td>Ruolo:</td><td>{{ formatRuolo(studenteSelezionato.ruolo) }}</td></tr>
+    <tr><td>Classe:</td><td>{{ studenteSelezionato.classe?.nome || 'N/A' }}</td></tr>
+    <tr><td>Corso:</td><td>{{ studenteSelezionato.corso?.nome || 'N/A' }}</td></tr>
+  </table>
 </template>
 
 <script setup>
-//script//
-import { onMounted, ref } from 'vue'
-import axios from 'axios'
+import { onMounted, ref } from 'vue';
+import axios from 'axios';
 
-const utenti = ref([
-  { id: 1, ruolo: 'ADMIN' },
-  { id: 2, ruolo: 'USER' },
-  { id: 3, ruolo: 'GUEST' }
-])
-
-//formatto il carattere di ruolo
+const utenti = ref([]);
+const studenteSelezionato = ref(null);
 
 const formatRuolo = (ruolo) => {
-  return ruolo.charAt(0).toUpperCase() + ruolo.slice(1).toLowerCase();
-}
+  return ruolo ? ruolo.charAt(0).toUpperCase() + ruolo.slice(1).toLowerCase() : 'N/A';
+};
 
-const classi = ref([])
-
+const mostraInfoStudente = (utente) => {
+  studenteSelezionato.value = utente;
+};
 
 const init = async () => {
   try {
-    const resUtenti = await axios.get('http://localhost:8080/utente/all')
-    console.log('Risposta API per gli utenti:', resUtenti.data)
-    utenti.value = resUtenti.data
-    console.log('Utenti ricevuti:', utenti.value)
-
-    const resClassi = await axios.get('http://localhost:8080/classe/all')
-    console.log('Risposta API per i brand:', resClassi)
-    classi.value = resClassi.data
-    console.log('Classi ricevute:', classi.value)
+    const resUtenti = await axios.get('http://localhost:8080/utente/all');
+    utenti.value = resUtenti.data;
   } catch (error) {
-    console.error('Errore nel caricamento degli utenti o delle classi:', error)
+    console.error('Errore nel caricamento degli utenti:', error);
   }
-}
+};
 
-onMounted(init)
-
+onMounted(init);
 </script>
 
 <style>
-body{
-  margin : 0;
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
 }
 
-.container{
-  display: flex;;
-  border: 1px solid black;
+.container {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 20px;
+  margin: 20px auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  width: 80%;
+  background: #fafafa;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.section {
+  width: 22%;
+  padding: 6px;
+
+}
+
+h1 {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 3px 8px;
   border-radius: 5px;
-  width: 35%;
-  height: auto;
+  cursor: pointer;
+  transition: background 0.3s;
 }
 
-table{
-  margin: 10px;
-  padding: 10px;
+button:hover {
+  background-color: #0056b3;
+}
+
+.info-table {
+  width: 60%;
+  margin: 20px auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.info-table td {
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
 }
 </style>
-
-
