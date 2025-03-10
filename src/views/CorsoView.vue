@@ -1,13 +1,11 @@
 <script setup>
+import CorsoComponent from '@/components/CorsoComponent.vue';
+
 
 </script>
 
 <template>
-  <div>
-    <h1>Home</h1>
-    <h2>Vite App</h2>
-    <Ciao/>
-  </div>
+<CorsoComponent/>
 </template>
 
 <style scoped>

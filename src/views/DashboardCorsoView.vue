@@ -18,17 +18,36 @@
   </div>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      corsi: [
-        { id: 1, titolo: "Corso di Vue", descrizione: "Impara Vue.js da zero" },
-        { id: 2, titolo: "Corso di JavaScript", descrizione: "JS moderno e avanzato" }
-      ] // Simulazione dati, sostituiscili con API
-    };
+<script setup>
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+
+// Definiamo l'URL dell'API
+const API_URL = 'http://localhost:8080/api/v1/corsi';
+
+// Variabile reattiva per i corsi
+const corsi = ref([]);
+
+// Funzione per recuperare i corsi dall'API
+const fetchCorsi = async () => {
+  try {
+    const response = await axios.get(API_URL);
+    corsi.value = response.data; // Aggiorniamo lo stato con i dati ricevuti
+  } catch (error) {
+    console.error('Errore nel recupero dei corsi:', error);
   }
 };
+
+// **Funzione per aggiornare un corso specifico nella lista**
+const aggiornaCorso = (corsoAggiornato) => {
+  const index = corsi.value.findIndex(c => c.id === corsoAggiornato.id);
+  if (index !== -1) {
+    corsi.value[index] = { ...corsoAggiornato };
+  }
+};
+
+// Chiamata API al montaggio del componente
+onMounted(fetchCorsi);
 </script>
 
 <style scoped>
