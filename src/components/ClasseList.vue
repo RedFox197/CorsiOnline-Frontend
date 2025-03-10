@@ -95,7 +95,7 @@
             </div>
             <div class="card-footer bg-white border-top-0">
               <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                <button type="button" class="btn btn-outline-primary btn-sm">
+                <button type="button" class="btn btn-outline-primary btn-sm" @click="apreModificaClasse(classe)">
                   <i class="bi bi-pencil-square me-1"></i> Modifica
                 </button>
                 <button type="button" class="btn btn-outline-danger btn-sm">
@@ -110,6 +110,126 @@
           <div class="alert alert-info text-center" role="alert">
             <i class="bi bi-info-circle me-2"></i> Nessuna classe trovata con i filtri selezionati.
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal per modifica classe -->
+    <div class="modal fade" id="modificaClasseModal" tabindex="-1" aria-labelledby="modificaClasseModalLabel" aria-hidden="true" ref="modificaClasseModal">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title" id="modificaClasseModalLabel">Modifica Classe</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form @submit.prevent="salvaModifiche">
+              <div class="row g-3">
+                <!-- Informazioni base -->
+                <div class="col-md-6">
+                  <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="classeNome" v-model="classeInModifica.nome" required>
+                    <label for="classeNome">Nome Classe</label>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="classeId" v-model="classeInModifica.id" disabled>
+                    <label for="classeId">ID Classe</label>
+                  </div>
+                </div>
+
+                <!-- Date -->
+                <div class="col-md-6">
+                  <div class="form-floating mb-3">
+                    <input type="date" class="form-control" id="dataInizio" v-model="classeInModifica.dataInizio" required>
+                    <label for="dataInizio">Data Inizio</label>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-floating mb-3">
+                    <input type="date" class="form-control" id="dataFine" v-model="classeInModifica.dataFine" required>
+                    <label for="dataFine">Data Fine</label>
+                  </div>
+                </div>
+
+                <!-- Corso -->
+                <div class="col-12">
+                  <h5 class="border-bottom pb-2 mb-3">Informazioni sul Corso</h5>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-floating mb-3">
+                    <select class="form-select" id="corsoSelect" v-model="classeInModifica.corso" required>
+                      <option v-for="corso in corsiUnici" :key="corso.id" :value="corso">
+                        {{ corso.titolo }}
+                      </option>
+                    </select>
+                    <label for="corsoSelect">Corso</label>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="corsoId" v-model="classeInModifica.corso.id" disabled>
+                    <label for="corsoId">ID Corso</label>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <div class="form-floating mb-3">
+                    <textarea class="form-control" id="corsoDescrizione" v-model="classeInModifica.corso.descrizione" style="height: 100px"></textarea>
+                    <label for="corsoDescrizione">Descrizione Corso</label>
+                  </div>
+                </div>
+
+                <!-- Docente -->
+                <div class="col-12">
+                  <h5 class="border-bottom pb-2 mb-3">Informazioni sul Docente</h5>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-floating mb-3">
+                    <select class="form-select" id="docenteSelect" v-model="classeInModifica.docente" required>
+                      <option v-for="docente in docentiUnici" :key="docente.id" :value="docente">
+                        {{ docente.nome }} {{ docente.cognome }}
+                      </option>
+                    </select>
+                    <label for="docenteSelect">Docente</label>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="docenteEmail" v-model="classeInModifica.docente.email" disabled>
+                    <label for="docenteEmail">Email Docente</label>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annulla</button>
+            <button type="button" class="btn btn-primary" @click="salvaModifiche">
+              <i class="bi bi-check-circle me-1"></i> Salva Modifiche
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast per notifiche -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 5">
+      <div id="notificaToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" ref="notificaToast">
+        <div class="toast-header" :class="[notifica.tipo === 'success' ? 'bg-success text-white' : 'bg-danger text-white']">
+          <i class="bi" :class="[notifica.tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill']"></i>
+          <strong class="ms-2 me-auto">{{ notifica.titolo }}</strong>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+          {{ notifica.messaggio }}
         </div>
       </div>
     </div>
@@ -128,6 +248,31 @@ export default {
         nome: '',
         corso: '',
         docente: ''
+      },
+      classeInModifica: {
+        id: null,
+        nome: '',
+        dataInizio: '',
+        dataFine: '',
+        corso: {
+          id: null,
+          titolo: '',
+          descrizione: ''
+        },
+        docente: {
+          id: null,
+          nome: '',
+          cognome: '',
+          email: '',
+          ruolo: ''
+        }
+      },
+      modalInstance: null,
+      toastInstance: null,
+      notifica: {
+        tipo: 'success',
+        titolo: '',
+        messaggio: ''
       }
     };
   },
@@ -201,6 +346,65 @@ export default {
     getInitials(nome, cognome) {
       if (!nome || !cognome) return '??';
       return `${nome.charAt(0)}${cognome.charAt(0)}`;
+    },
+    apreModificaClasse(classe) {
+      // Crea una copia profonda dell'oggetto classe per evitare modifiche accidentali prima del salvataggio
+      this.classeInModifica = JSON.parse(JSON.stringify(classe));
+      this.modalInstance.show();
+    },
+    async salvaModifiche() {
+      try {
+        // Chiamata all'API per aggiornare la classe
+        const response = await fetch(`http://localhost:8080/api/v1/classi/${this.classeInModifica.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(this.classeInModifica)
+        });
+
+        if (!response.ok) {
+          throw new Error(`Errore durante l'aggiornamento: ${response.status} ${response.statusText}`);
+        }
+
+        // Aggiorna la classe nella lista locale
+        const classeAggiornata = await response.json();
+        const index = this.classi.findIndex(c => c.id === classeAggiornata.id);
+        if (index !== -1) {
+          this.classi[index] = classeAggiornata;
+        }
+
+        // Chiudi la modal
+        this.modalInstance.hide();
+
+        // Mostra notifica di successo
+        this.mostraNotifica('success', 'Aggiornamento riuscito', 'La classe è stata aggiornata con successo.');
+      } catch (err) {
+        console.error('Errore durante il salvataggio delle modifiche:', err);
+        this.mostraNotifica('error', 'Errore di aggiornamento', `Si è verificato un errore: ${err.message}`);
+      }
+    },
+    mostraNotifica(tipo, titolo, messaggio) {
+      this.notifica = {
+        tipo,
+        titolo,
+        messaggio
+      };
+      this.toastInstance.show();
+    },
+    inizializzaComponentiBootstrap() {
+      // Importa dinamicamente Bootstrap JS
+      import('bootstrap/dist/js/bootstrap.bundle.min.js').then(bootstrap => {
+        // Inizializza il modal
+        this.modalInstance = new bootstrap.Modal(this.$refs.modificaClasseModal);
+
+        // Inizializza il toast
+        this.toastInstance = new bootstrap.Toast(this.$refs.notificaToast, {
+          delay: 5000 // Durata 5 secondi
+        });
+      }).catch(error => {
+        console.error('Errore nel caricamento di Bootstrap JS:', error);
+      });
     }
   },
   mounted() {
@@ -211,6 +415,9 @@ export default {
     link.href = 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css';
     link.rel = 'stylesheet';
     document.head.appendChild(link);
+
+    // Inizializza componenti Bootstrap
+    this.inizializzaComponentiBootstrap();
   }
 };
 </script>
@@ -228,5 +435,15 @@ export default {
 .avatar {
   font-weight: bold;
   font-size: 14px;
+}
+
+/* Stile per il modal */
+.modal-header.bg-primary button.btn-close-white:focus {
+  box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.25);
+}
+
+.form-floating > .form-control:disabled,
+.form-floating > .form-control[readonly] {
+  background-color: #f8f9fa;
 }
 </style>
