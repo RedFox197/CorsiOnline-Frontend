@@ -3,30 +3,33 @@
     <h2>Elenco Classi</h2>
     <table class="table table-striped">
       <thead>
-        <tr>
-          <th>ID</th>
-          <th>Nome</th>
-          <th>Data Inizio</th>
-          <th>Data Fine</th>
-          <th>Corso</th>
-          <th>Docente</th>
-          <th>Azioni</th>
-        </tr>
+      <tr>
+        <th>ID</th>
+        <th>Nome</th>
+        <th>Data Inizio</th>
+        <th>Data Fine</th>
+        <th>Corso</th>
+        <th>Docente</th>
+        <th>Azioni</th>
+      </tr>
       </thead>
       <tbody>
-        <tr v-for="classe in classi" :key="classe.id">
-          <td>{{ classe.id }}</td>
-          <td>{{ classe.nome }}</td>
-          <td>{{ classe.dataInizio }}</td>
-          <td>{{ classe.dataFine }}</td>
-          <td>{{ classe.corso.titolo }}</td>
-          <td>{{ classe.docente.nome }} {{ classe.docente.cognome }}</td>
-          <td>
-            <button class="btn btn-primary btn-sm" @click="editClasse(classe)">Modifica</button>
-          </td>
-        </tr>
+      <tr v-for="classe in classi" :key="classe.id">
+        <td>{{ classe.id }}</td>
+        <td>{{ classe.nome }}</td>
+        <td>{{ classe.dataInizio }}</td>
+        <td>{{ classe.dataFine }}</td>
+        <td>{{ classe.corso.titolo }}</td>
+        <td>{{ classe.docente.nome }} {{ classe.docente.cognome }}</td>
+        <td>
+          <button class="btn btn-primary btn-sm" @click="editClasse(classe)">Modifica</button>
+        </td>
+      </tr>
       </tbody>
     </table>
+
+    <!-- Pulsante per aggiungere una nuova classe -->
+    <CreaClasse @classi-created="fetchClassi" />
 
     <!-- Modal Modifica -->
     <div class="modal fade" id="editModal" tabindex="-1">
@@ -54,45 +57,45 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import CreaClasse from '@/components/classe/CreaClasse.vue'
 import { Modal } from 'bootstrap'
 
-export default {
-  data() {
-    return {
-      classi: [],
-      selectedClasse: {},
-    }
-  },
-  mounted() {
-    this.fetchClassi()
-  },
-  methods: {
-    async fetchClassi() {
-      try {
-        const response = await axios.get('http://localhost:8080/api/v1/classi')
-        this.classi = response.data
-      } catch (error) {
-        console.error('Errore nel recupero classi:', error)
-      }
-    },
-    editClasse(classe) {
-      this.selectedClasse = { ...classe }
-      new Modal(document.getElementById('editModal')).show()
-    },
-    async saveClasse() {
-      try {
-        await axios.put(
-          `http://localhost:8080/api/v1/classi/${this.selectedClasse.id}`,
-          this.selectedClasse,
-        )
-        this.fetchClassi()
-        document.querySelector('#editModal .btn-close').click()
-      } catch (error) {
-        console.error('Errore nel salvataggio:', error)
-      }
-    },
-  },
+const classi = ref([])
+const selectedClasse = ref({})
+
+const fetchClassi = async () => {
+  try {
+    const response = await axios.get('http://localhost:8080/api/v1/classi')
+    classi.value = response.data
+  } catch (error) {
+    console.error('Errore nel recupero classi:', error)
+  }
 }
+
+const editClasse = (classe) => {
+  selectedClasse.value = { ...classe }
+  const modal = new Modal(document.getElementById('editModal'))
+  modal.show()  // Apre il modal
+}
+
+const saveClasse = async () => {
+  try {
+    await axios.put(
+      `http://localhost:8080/api/v1/classi/${selectedClasse.value.id}`,
+      selectedClasse.value
+    )
+    fetchClassi()
+    const modal = new Modal(document.getElementById('editModal'))
+    modal.hide()  // Chiude il modal
+  } catch (error) {
+    console.error('Errore nel salvataggio:', error)
+  }
+}
+
+onMounted(() => {
+  fetchClassi()
+})
 </script>
