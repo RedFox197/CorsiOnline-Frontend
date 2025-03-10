@@ -1,11 +1,9 @@
 <script setup>
-import ClasseList from '@/components/ClasseList.vue'
+import ClasseList from '@/components/classe/ClasseList.vue'
 </script>
 
 <template>
-  <classe-list/>
+  <classe-list />
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

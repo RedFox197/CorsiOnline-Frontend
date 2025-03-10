@@ -6,8 +6,8 @@ import DettaglioCorsoView from '@/views/DettaglioCorsoView.vue'
 import ModificaCorsoView from '@/views/ModificaCorsoView.vue'
 import EsameView from '@/views/EsameView.vue'
 import UtenteView from '@/views/UtenteView.vue'
-import ClasseView from '@/views/ClasseView.vue'
-import ClasseList from '@/components/ClasseList.vue'
+import ClasseView from '@/views/classe/ClasseView.vue'
+import ClasseList from '@/components/classe/ClasseList.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -27,16 +27,16 @@ const router = createRouter({
       name: 'gestione-corso',
       component: GestioneCorsoView,
     },
-    { path: '/corso/:id',
+    {
+      path: '/corso/:id',
       name: 'dettagli-corso',
-      component: DettaglioCorsoView
-    }
-    ,
-    { path: '/corso/:id/modifica',
+      component: DettaglioCorsoView,
+    },
+    {
+      path: '/corso/:id/modifica',
       name: 'modifica-corso',
-      component: ModificaCorsoView
-    }
-    ,
+      component: ModificaCorsoView,
+    },
     {
       path: '/esame',
       name: 'esame',
