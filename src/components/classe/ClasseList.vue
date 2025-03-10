@@ -37,7 +37,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Modifica Classe</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <label>Nome:</label>
@@ -65,6 +65,7 @@ import { Modal } from 'bootstrap'
 
 const classi = ref([])
 const selectedClasse = ref({})
+let modalInstance = null
 
 const fetchClassi = async () => {
   try {
@@ -77,19 +78,20 @@ const fetchClassi = async () => {
 
 const editClasse = (classe) => {
   selectedClasse.value = { ...classe }
-  const modal = new Modal(document.getElementById('editModal'))
-  modal.show()  // Apre il modal
+  if (!modalInstance) {
+    modalInstance = new Modal(document.getElementById('editModal'))
+  }
+  modalInstance.show() // Apre il modal
 }
 
 const saveClasse = async () => {
   try {
     await axios.put(
       `http://localhost:8080/api/v1/classi/${selectedClasse.value.id}`,
-      selectedClasse.value
+      selectedClasse.value,
     )
     fetchClassi()
-    const modal = new Modal(document.getElementById('editModal'))
-    modal.hide()  // Chiude il modal
+    modalInstance.hide() // Chiude il modal
   } catch (error) {
     console.error('Errore nel salvataggio:', error)
   }
