@@ -8,7 +8,6 @@ import EsameView from '@/views/EsameView.vue'
 import UtenteView from '@/views/UtenteView.vue'
 import ClasseView from '@/views/ClasseView.vue'
 import ClasseList from '@/components/ClasseList.vue'
-import ClasseForm from '@/components/ClasseForm.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -56,7 +55,7 @@ const router = createRouter({
     {
       path: '/classeform',
       name: 'classeform',
-      component: ClasseForm,
+      component: ClasseList,
     },
     {
       path: '/about',

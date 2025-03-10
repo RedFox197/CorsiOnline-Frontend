@@ -391,33 +391,10 @@ export default {
         messaggio
       };
       this.toastInstance.show();
-    },
-    inizializzaComponentiBootstrap() {
-      // Importa dinamicamente Bootstrap JS
-      import('bootstrap/dist/js/bootstrap.bundle.min.js').then(bootstrap => {
-        // Inizializza il modal
-        this.modalInstance = new bootstrap.Modal(this.$refs.modificaClasseModal);
-
-        // Inizializza il toast
-        this.toastInstance = new bootstrap.Toast(this.$refs.notificaToast, {
-          delay: 5000 // Durata 5 secondi
-        });
-      }).catch(error => {
-        console.error('Errore nel caricamento di Bootstrap JS:', error);
-      });
     }
   },
   mounted() {
     this.fetchClassi();
-
-    // Aggiunta di Bootstrap Icons via CDN
-    const link = document.createElement('link');
-    link.href = 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css';
-    link.rel = 'stylesheet';
-    document.head.appendChild(link);
-
-    // Inizializza componenti Bootstrap
-    this.inizializzaComponentiBootstrap();
   }
 };
 </script>
