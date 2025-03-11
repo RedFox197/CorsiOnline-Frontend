@@ -21,7 +21,7 @@
           <td>{{ utente.cognome }}</td>
           <td>{{ utente.email }}</td>
           <td>{{ utente.ruolo }}</td>
-          <td>{{ utente.classe ? utente.classe.nome : 'N/A' }}</td>
+          <td>{{utente.classe.map(classe => classe.nome).join(', ')}}</td>
           <td>
             <ul>
               <li v-for="esame in utente.esami" :key="esame.id">{{ esame.titolo }}</li>
@@ -29,32 +29,78 @@
           </td>
           <td>
             <button class="btn btn-primary btn-sm" @click="editUtente(utente)">Modifica</button>
+            <button class="btn btn-danger btn-sm ms-2" @click="deleteUtente(utente.id)">Elimina</button>
           </td>
         </tr>
       </tbody>
     </table>
 
-    <!-- Modal Modifica -->
-    <div class="modal fade" id="editModal" tabindex="-1">
+    <!-- Pulsante per aggiungere un nuovo utente -->
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createModal">
+      Aggiungi Nuovo Utente
+    </button>
+
+    <!-- Modal Modifica Utente -->
+<div class="modal fade" id="editModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Modifica Utente</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <label>Nome:</label>
+        <input v-model="selectedUtente.nome" class="form-control" />
+        <label>Cognome:</label>
+        <input v-model="selectedUtente.cognome" class="form-control" />
+        <label>Email:</label>
+        <input v-model="selectedUtente.email" type="email" class="form-control" />
+        <label>Ruolo:</label>
+        <select v-model="selectedUtente.ruolo" class="form-control">
+          <option value="STUDENTE">Studente</option>
+          <option value="DOCENTE">Docente</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+        <button class="btn btn-primary" @click="saveUtente">Salva</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    <!-- Modal Creazione Utente -->
+    <div class="modal fade" id="createModal" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Modifica Utente</h5>
+            <h5 class="modal-title">Crea Nuovo Utente</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <label>Nome:</label>
-            <input v-model="selectedUtente.nome" class="form-control" />
+            <input v-model="newUtente.nome" class="form-control" />
             <label>Cognome:</label>
-            <input v-model="selectedUtente.cognome" class="form-control" />
+            <input v-model="newUtente.cognome" class="form-control" />
             <label>Email:</label>
-            <input v-model="selectedUtente.email" type="email" class="form-control" />
+            <input v-model="newUtente.email" type="email" class="form-control" />
             <label>Ruolo:</label>
-            <input v-model="selectedUtente.ruolo" class="form-control" />
+<select v-model="newUtente.ruolo" class="form-control">
+  <option value="STUDENTE">Studente</option>
+  <option value="DOCENTE">Docente</option>
+</select>
+      <label>Classe:</label>
+            <select v-model="newUtente.classe" class="form-control">
+              <option v-for="classe in classi" :key="classe.id" :value="classe.id">
+                {{ classe.nome }}
+              </option>
+            </select>
+
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
-            <button class="btn btn-success" @click="saveUtente">Salva</button>
+            <button class="btn btn-success" @click="createUtente">Crea</button>
           </div>
         </div>
       </div>
@@ -64,12 +110,20 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import utenteService from '@/service/UtenteService.js'
+import utenteService from '@/service/UtenteService.js';
 import { Modal } from 'bootstrap';
 
 const utenti = ref([]);
 const selectedUtente = ref({});
+const newUtente = ref({
+  nome: '',
+  cognome: '',
+  email: '',
+  ruolo: ''
+});
+
 let modalInstance = null;
+let createModalInstance = null;
 
 const fetchUtenti = async () => {
   try {
@@ -101,7 +155,32 @@ const saveUtente = async () => {
   }
 };
 
+const createUtente = async () => {
+  try {
+    await utenteService.save(newUtente.value);
+    fetchUtenti();
+    createModalInstance.hide();
+    newUtente.value = { nome: '', cognome: '', email: '', ruolo: '' }; // Reset campi
+  } catch (error) {
+    console.error('Errore nella creazione dell\'utente:', error);
+  }
+};
+
+const deleteUtente = async (id) => {
+  if (confirm('Sei sicuro di voler eliminare questo utente?')) {
+    try {
+      await utenteService.deleteu(id);
+      fetchUtenti();
+    } catch (error) {
+      console.error('Errore nell\'eliminazione:', error);
+    }
+  }
+};
+
 onMounted(() => {
   fetchUtenti();
+  createModalInstance = new Modal(document.getElementById('createModal'));
 });
 </script>
+
+
