@@ -1,164 +1,107 @@
 <template>
-  <div class="container">
-    <div class="section">
-      <h1>Utenti</h1>
-      <p v-if="utenti.length === 0">Nessun utente presente</p>
-      <p v-for="utente in utenti" :key="utente.id">
-        {{ utente.nome }} {{ utente.cognome }}
-        <button class="info" @click="mostraInfoStudente(utente)">Info</button>
-      </p>
-    </div>
+  <div class="container mt-4">
+    <h2>Elenco Utenti</h2>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>Cognome</th>
+          <th>Email</th>
+          <th>Ruolo</th>
+          <th>Classe</th>
+          <th>Esami</th>
+          <th>Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="utente in utenti" :key="utente.id">
+          <td>{{ utente.id }}</td>
+          <td>{{ utente.nome }}</td>
+          <td>{{ utente.cognome }}</td>
+          <td>{{ utente.email }}</td>
+          <td>{{ utente.ruolo }}</td>
+          <td>{{ utente.classe ? utente.classe.nome : 'N/A' }}</td>
+          <td>
+            <ul>
+              <li v-for="esame in utente.esami" :key="esame.id">{{ esame.titolo }}</li>
+            </ul>
+          </td>
+          <td>
+            <button class="btn btn-primary btn-sm" @click="editUtente(utente)">Modifica</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-    <div class="section">
-      <h1>Ruolo</h1>
-      <p v-if="utenti.length === 0">Nessun ruolo presente</p>
-      <p v-for="utente in utenti" :key="utente.id">
-        {{ formatRuolo(utente.ruolo) }}
-      </p>
-    </div>
-
-    <div class="section">
-      <h1>Classe</h1>
-      <p v-if="utenti.length === 0">Nessuna classe presente</p>
-      <p v-for="utente in utenti" :key="utente.id">
-        {{ utente.classe?.nome || 'N/A' }}
-      </p>
-    </div>
-
-    <div class="section">
-      <h1>Corso</h1>
-      <p v-if="utenti.length === 0">Nessun corso presente</p>
-      <p v-for="utente in utenti" :key="utente.id">
-        {{ utente.corso?.nome || 'N/A' }}
-      </p>
+    <!-- Modal Modifica -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Modifica Utente</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <label>Nome:</label>
+            <input v-model="selectedUtente.nome" class="form-control" />
+            <label>Cognome:</label>
+            <input v-model="selectedUtente.cognome" class="form-control" />
+            <label>Email:</label>
+            <input v-model="selectedUtente.email" type="email" class="form-control" />
+            <label>Ruolo:</label>
+            <input v-model="selectedUtente.ruolo" class="form-control" />
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+            <button class="btn btn-success" @click="saveUtente">Salva</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-
-  <table class="info-table" v-if="studenteSelezionato">
-    <tbody>
-      <tr>
-        <td>ID:</td>
-        <td>{{ studenteSelezionato.id }}</td>
-      </tr>
-      <tr>
-        <td>Nome:</td>
-        <td>{{ studenteSelezionato.nome }}</td>
-      </tr>
-      <tr>
-        <td>Cognome:</td>
-        <td>{{ studenteSelezionato.cognome }}</td>
-      </tr>
-      <tr>
-        <td>Email:</td>
-        <td>{{ studenteSelezionato.email }}</td>
-      </tr>
-      <tr>
-        <td>Ruolo:</td>
-        <td>{{ formatRuolo(studenteSelezionato.ruolo) }}</td>
-      </tr>
-      <tr>
-        <td>Classe:</td>
-        <td>{{ studenteSelezionato.classe?.nome || 'N/A' }}</td>
-      </tr>
-      <tr>
-        <td>Corso:</td>
-        <td>{{ studenteSelezionato.corso?.nome || 'N/A' }}</td>
-      </tr>
-    </tbody>
-  </table>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { ref, onMounted } from 'vue';
 import utenteService from '@/service/UtenteService.js'
+import { Modal } from 'bootstrap';
 
-const utenti = ref([])
-const studenteSelezionato = ref(null)
+const utenti = ref([]);
+const selectedUtente = ref({});
+let modalInstance = null;
 
-const formatRuolo = (ruolo) => {
-  return ruolo ? ruolo.charAt(0).toUpperCase() + ruolo.slice(1).toLowerCase() : 'N/A'
-}
-
-const mostraInfoStudente = (utente) => {
-  studenteSelezionato.value = utente
-}
-
-const init = async () => {
+const fetchUtenti = async () => {
   try {
-    const resUtenti = await utenteService.findAll();
-    utenti.value = resUtenti
+    utenti.value = await utenteService.findAll();
+    for (let utente of utenti.value) {
+      utente.classe = await utenteService.getClassi(utente.id);
+      utente.esami = await utenteService.getEsami(utente.id);
+    }
   } catch (error) {
-    console.error('Errore nel caricamento degli utenti:', error)
+    console.error('Errore nel recupero utenti:', error);
   }
-}
+};
 
-onMounted(init)
+const editUtente = (utente) => {
+  selectedUtente.value = { ...utente };
+  if (!modalInstance) {
+    modalInstance = new Modal(document.getElementById('editModal'));
+  }
+  modalInstance.show();
+};
+
+const saveUtente = async () => {
+  try {
+    await utenteService.update(selectedUtente.value.id, selectedUtente.value);
+    fetchUtenti();
+    modalInstance.hide();
+  } catch (error) {
+    console.error('Errore nel salvataggio:', error);
+  }
+};
+
+onMounted(() => {
+  fetchUtenti();
+});
 </script>
-
-<style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
-}
-
-.container {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
-  padding: 20px;
-  margin: 20px auto;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-  width: 80%;
-  background: #fafafa;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-}
-
-.info {
-  border-radius: 5px;
-}
-
-.section {
-  width: 22%;
-  padding: 6px;
-}
-
-h1 {
-  font-size: 18px;
-  color: #333;
-  margin-bottom: 10px;
-}
-
-button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 3px 8px;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-button:hover {
-  background-color: #0056b3;
-}
-
-.info-table {
-  width: 60%;
-  margin: 20px auto;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 15px;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.info-table td {
-  padding: 8px;
-  border-bottom: 1px solid #ddd;
-}
-</style>
