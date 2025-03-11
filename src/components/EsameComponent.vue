@@ -1,9 +1,10 @@
-// App.vue
+<!-- App.vue -->
 <template>
   <div class="exams-container">
     <h1>Elenco Esami</h1>
 
-    <table class="exams-table">
+    <!-- Tabella Esami -->
+    <table class="exams-table" v-if="vistaCorrente === 'lista'">
       <thead>
         <tr>
           <th>Tipo</th>
@@ -20,17 +21,97 @@
           <td>{{ esame.punteggio }}</td>
           <td>{{ formatDate(esame.data) }}</td>
           <td>
-            <button @click="dettaglioEsame(esame)">Dettaglio</button>
+            <button @click="modificaEsame(esame)" class="edit-button">Modifica</button>
+            <button @click="confermaEliminazione(esame)" class="delete-button">Elimina</button>
           </td>
         </tr>
       </tbody>
     </table>
 
-    <div v-if="esamiCaricati && !esami.length" class="no-exams">
+    <div v-if="vistaCorrente === 'lista' && esamiCaricati && !esami.length" class="no-exams">
       Nessun esame trovato
     </div>
-    <div v-if="!esamiCaricati" class="loading">
+
+    <div v-if="vistaCorrente === 'lista' && !esamiCaricati" class="loading">
       Caricamento esami in corso...
+    </div>
+
+    <!-- Pulsante per aggiungere un nuovo esame (spostato sotto la tabella) -->
+    <div class="actions-bar" v-if="vistaCorrente === 'lista'">
+      <button class="add-button" @click="nuovoEsame">Aggiungi Nuovo Esame</button>
+    </div>
+
+    <!-- Modal di conferma eliminazione -->
+    <div v-if="modalEliminazione" class="modal-overlay">
+      <div class="modal-content">
+        <h3>Conferma Eliminazione</h3>
+        <p>Sei sicuro di voler eliminare l'esame selezionato?</p>
+        <div class="modal-actions">
+          <button @click="eliminaEsame" class="delete-button" :disabled="eliminazioneInCorso">
+            {{ eliminazioneInCorso ? 'Eliminazione...' : 'Elimina' }}
+          </button>
+          <button @click="annullaEliminazione" class="cancel-button-white">Annulla</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form per aggiunta/modifica esame -->
+    <div v-if="vistaCorrente === 'form'" class="esame-form">
+      <h2>{{ modalitaModifica ? 'Modifica Esame' : 'Nuovo Esame' }}</h2>
+
+      <div v-if="messaggioForm" class="message" :class="{ 'error': erroreForm }">
+        {{ messaggioForm }}
+      </div>
+
+      <form @submit.prevent="salvaEsame">
+        <div class="form-group">
+          <label for="tipo">Tipo:</label>
+          <input
+            type="text"
+            id="tipo"
+            v-model="esameCorrente.tipo"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="descrizione">Descrizione:</label>
+          <textarea
+            id="descrizione"
+            v-model="esameCorrente.descrizione"
+            required
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="punteggio">Punteggio:</label>
+          <input
+            type="number"
+            id="punteggio"
+            v-model.number="esameCorrente.punteggio"
+            min="0"
+            max="100"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="data">Data:</label>
+          <input
+            type="date"
+            id="data"
+            v-model="esameCorrente.dataFormattata"
+            required
+          >
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" :disabled="salvataggioInCorso">
+            {{ salvataggioInCorso ? 'Salvataggio...' : 'Salva' }}
+          </button>
+          <button type="button" class="cancel-button" @click="tornaAllaLista">Annulla</button>
+        </div>
+      </form>
     </div>
   </div>
 </template>
@@ -42,7 +123,24 @@ export default {
   data() {
     return {
       esami: [],
-      esamiCaricati: false
+      esamiCaricati: false,
+      vistaCorrente: 'lista', // 'lista' o 'form'
+      esameCorrente: {
+        id: null,
+        tipo: '',
+        descrizione: '',
+        punteggio: 0,
+        data: null,
+        dataFormattata: ''
+      },
+      modalitaModifica: false,
+      salvataggioInCorso: false,
+      messaggioForm: '',
+      erroreForm: false,
+      // Nuove proprietà per la funzionalità di eliminazione
+      modalEliminazione: false,
+      esamePerEliminazione: null,
+      eliminazioneInCorso: false
     }
   },
   created() {
@@ -77,15 +175,148 @@ export default {
         this.esamiCaricati = true
       }
     },
+
     formatDate(dateString) {
       // Formatta la data nel formato desiderato (es: DD/MM/YYYY)
+      if (!dateString) return ''
       const date = new Date(dateString)
       return date.toLocaleDateString('it-IT')
     },
-    dettaglioEsame(esame) {
-      // Funzione per gestire la visualizzazione del dettaglio
-      console.log('Dettaglio esame:', esame)
-      // Qui potresti navigare a una pagina di dettaglio o aprire un modal
+
+    formatDateForInput(dateString) {
+      // Formatta la data per l'input type="date" (YYYY-MM-DD)
+      if (!dateString) return ''
+      const date = new Date(dateString)
+      return date.toISOString().split('T')[0]
+    },
+
+    nuovoEsame() {
+      // Prepara il form per un nuovo esame
+      this.esameCorrente = {
+        id: null,
+        tipo: '',
+        descrizione: '',
+        punteggio: 0,
+        data: null,
+        dataFormattata: ''
+      }
+      this.modalitaModifica = false
+      this.messaggioForm = ''
+      this.erroreForm = false
+      this.vistaCorrente = 'form'
+    },
+
+    modificaEsame(esame) {
+      // Prepara il form per modificare un esame esistente
+      this.esameCorrente = {
+        ...esame,
+        dataFormattata: this.formatDateForInput(esame.data)
+      }
+      this.modalitaModifica = true
+      this.messaggioForm = ''
+      this.erroreForm = false
+      this.vistaCorrente = 'form'
+    },
+
+    tornaAllaLista() {
+      this.vistaCorrente = 'lista'
+    },
+
+    async salvaEsame() {
+      try {
+        this.salvataggioInCorso = true
+        this.messaggioForm = ''
+        this.erroreForm = false
+
+        // Prepara i dati per l'invio
+        const esamePerSalvataggio = {
+          ...this.esameCorrente,
+          data: new Date(this.esameCorrente.dataFormattata).toISOString()
+        }
+
+        // Rimuovi la proprietà dataFormattata che è solo per il form
+        delete esamePerSalvataggio.dataFormattata
+
+        let response
+
+        if (this.modalitaModifica) {
+          // Modifica di un esame esistente
+          response = await axios.put(
+            `http://localhost:8080/api/v1/esami/${this.esameCorrente.id}`,
+            esamePerSalvataggio
+          )
+        } else {
+          // Creazione di un nuovo esame
+          response = await axios.post(
+            'http://localhost:8080/api/v1/esami',
+            esamePerSalvataggio
+          )
+        }
+
+        // Torna alla lista e ricarica gli esami
+        this.vistaCorrente = 'lista'
+        this.caricaEsami()
+
+      } catch (error) {
+        console.error('Errore durante il salvataggio dell\'esame:', error)
+        this.messaggioForm = 'Si è verificato un errore durante il salvataggio dell\'esame'
+        this.erroreForm = true
+
+        if (error.response) {
+          console.error('Status:', error.response.status)
+          console.error('Data:', error.response.data)
+
+          if (error.response.data && error.response.data.message) {
+            this.messaggioForm = `Errore: ${error.response.data.message}`
+          }
+        }
+      } finally {
+        this.salvataggioInCorso = false
+      }
+    },
+
+    // Nuovi metodi per la funzionalità di eliminazione
+    confermaEliminazione(esame) {
+      this.esamePerEliminazione = esame
+      this.modalEliminazione = true
+    },
+
+    annullaEliminazione() {
+      this.modalEliminazione = false
+      this.esamePerEliminazione = null
+    },
+
+    async eliminaEsame() {
+      if (!this.esamePerEliminazione || !this.esamePerEliminazione.id) {
+        return
+      }
+
+      try {
+        this.eliminazioneInCorso = true
+
+        // Chiamata DELETE all'API per eliminare l'esame
+        await axios.delete(`http://localhost:8080/api/v1/esami/${this.esamePerEliminazione.id}`)
+
+        // Chiudi il modal e ricarica la lista degli esami
+        this.modalEliminazione = false
+        this.esamePerEliminazione = null
+
+        // Ricarica la lista degli esami
+        this.caricaEsami()
+      } catch (error) {
+        console.error('Errore durante l\'eliminazione dell\'esame:', error)
+
+        // Qui potresti gestire eventuali errori, come visualizzare un messaggio
+        // o mantenere il modal aperto con un messaggio di errore
+        alert('Si è verificato un errore durante l\'eliminazione dell\'esame')
+
+        if (error.response) {
+          console.error('Status:', error.response.status)
+          console.error('Data:', error.response.data)
+        }
+      } finally {
+        this.eliminazioneInCorso = false
+      }
     }
   }
 }
@@ -96,6 +327,21 @@ export default {
   max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
+}
+
+.actions-bar {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.add-button {
+  background-color: #2196F3;
+}
+
+.add-button:hover {
+  background-color: #0b7dda;
 }
 
 .exams-table {
@@ -141,5 +387,121 @@ button {
 
 button:hover {
   background-color: #45a049;
+}
+
+button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.edit-button {
+  background-color: #4CAF50;
+  margin-right: 5px;
+}
+
+.edit-button:hover {
+  background-color: #45a049;
+}
+
+.delete-button {
+  background-color: #f44336;
+}
+
+.delete-button:hover {
+  background-color: #d32f2f;
+}
+
+.cancel-button {
+  background-color: #f44336;
+  margin-left: 10px;
+}
+
+.cancel-button:hover {
+  background-color: #d32f2f;
+}
+
+.cancel-button-white {
+  background-color: white;
+  color: #333;
+  border: 1px solid #ddd;
+  margin-left: 10px;
+}
+
+.cancel-button-white:hover {
+  background-color: #f5f5f5;
+}
+
+/* Stili per il form */
+.esame-form {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  margin-top: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.form-group input, .form-group textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.form-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.message {
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.message.error {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* Stili per il modal di eliminazione */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 5px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
 }
 </style>
