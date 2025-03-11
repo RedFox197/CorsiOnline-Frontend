@@ -70,7 +70,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
-import axios from 'axios'
+import utenteService from '@/service/UtenteService.js'
 
 const utenti = ref([])
 const studenteSelezionato = ref(null)
@@ -85,8 +85,8 @@ const mostraInfoStudente = (utente) => {
 
 const init = async () => {
   try {
-    const resUtenti = await axios.get('http://localhost:8080/api/v1/utenti')
-    utenti.value = resUtenti.data
+    const resUtenti = await utenteService.findAll();
+    utenti.value = resUtenti
   } catch (error) {
     console.error('Errore nel caricamento degli utenti:', error)
   }
