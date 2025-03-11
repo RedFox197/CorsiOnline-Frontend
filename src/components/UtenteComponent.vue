@@ -5,7 +5,7 @@
       <p v-if="utenti.length === 0">Nessun utente presente</p>
       <p v-for="utente in utenti" :key="utente.id">
         {{ utente.nome }} {{ utente.cognome }}
-        <button @click="mostraInfoStudente(utente)">Info</button>
+        <button class="info" @click="mostraInfoStudente(utente)">Info</button>
       </p>
     </div>
 
@@ -85,7 +85,7 @@ const mostraInfoStudente = (utente) => {
 
 const init = async () => {
   try {
-    const resUtenti = await axios.get('http://localhost:8080/utente/all')
+    const resUtenti = await axios.get('http://localhost:8080/api/v1/utenti')
     utenti.value = resUtenti.data
   } catch (error) {
     console.error('Errore nel caricamento degli utenti:', error)
@@ -119,6 +119,10 @@ body {
   border: 1px solid #ddd;
 }
 
+.info {
+  border-radius: 5px;
+}
+
 .section {
   width: 22%;
   padding: 6px;
@@ -135,7 +139,6 @@ button {
   color: white;
   border: none;
   padding: 3px 8px;
-  border-radius: 5px;
   cursor: pointer;
   transition: background 0.3s;
 }

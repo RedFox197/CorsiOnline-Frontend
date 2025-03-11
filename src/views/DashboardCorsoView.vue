@@ -13,6 +13,11 @@
       />
     </div>
 
+    <!-- Pulsante per aggiungere un nuovo corso -->
+    <div class="button-wrapper">
+      <button @click="vaiAggiungiCorso" class="add-button">+ Aggiungi Corso</button>
+    </div>
+
     <!-- Tabella dei corsi -->
     <div class="table-container">
       <table class="table">
@@ -39,23 +44,45 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Messaggio di errore API -->
+    <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
   </div>
 </template>
 
 <script>
 import { ref, computed, onMounted } from 'vue';
-// import axios from 'axios'; // API Commentata
+import { useRouter } from 'vue-router';
+import axios from 'axios';
 
 export default {
   setup() {
     const searchQuery = ref("");
+    const router = useRouter();
+    const corsi = ref([]);
+    const errorMessage = ref("");
 
-    // Dati statici per ora
-    const corsi = ref([
-      { id: 1, titolo: "Corso di Vue", descrizione: "Impara Vue.js da zero", classi: ["Classe A", "Classe B"] },
-      { id: 2, titolo: "Corso di JavaScript", descrizione: "JS moderno e avanzato", classi: ["Classe C"] },
-      { id: 3, titolo: "Corso di Python", descrizione: "Sviluppo e data science", classi: [] }
-    ]);
+    // Funzione per recuperare i corsi dall'API
+    const fetchCorsi = async () => {
+      try {
+        const response = await axios.get('http://localhost:8080/api/v1/corsi');
+        corsi.value = response.data;
+
+        // Recupera le classi associate per ogni corso
+        for (let corso of corsi.value) {
+          try {
+            const classiResponse = await axios.get(`http://localhost:8080/api/v1/corsi/${corso.id}/classi`);
+            corso.classi = classiResponse.data.map(c => c.nome); // Supponendo che la classe abbia una proprietà `nome`
+          } catch (error) {
+            console.error(`Errore nel recupero delle classi per il corso ${corso.id}:`, error);
+            corso.classi = []; // Nessuna classe associata in caso di errore
+          }
+        }
+      } catch (error) {
+        console.error("Errore nel recupero corsi:", error);
+        errorMessage.value = "Errore nel caricamento dei corsi. Riprova più tardi.";
+      }
+    };
 
     // Computed per filtrare i corsi in base alla ricerca
     const filteredCorsi = computed(() => {
@@ -65,19 +92,14 @@ export default {
       );
     });
 
-    // Funzione per recuperare i corsi da API (Attualmente commentata)
-    // const fetchCorsi = async () => {
-    //   try {
-    //     const response = await axios.get('http://localhost:8080/api/v1/corsi');
-    //     corsi.value = response.data;
-    //   } catch (error) {
-    //     console.error("Errore nel recupero corsi:", error);
-    //   }
-    // };
+    // Funzione per navigare alla pagina di aggiunta corsi
+    const vaiAggiungiCorso = () => {
+      router.push('/corso/gestione'); // ✅ Rotta per aggiungere un corso
+    };
 
-    // onMounted(fetchCorsi); // API disabilitata per ora
+    onMounted(fetchCorsi);
 
-    return { searchQuery, filteredCorsi };
+    return { searchQuery, filteredCorsi, vaiAggiungiCorso, errorMessage };
   }
 };
 </script>
@@ -108,7 +130,7 @@ export default {
   display: flex;
   justify-content: center;
   width: 100%;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
 /* Input di ricerca */
@@ -129,6 +151,31 @@ export default {
   box-shadow: 0px 4px 10px rgba(0, 123, 255, 0.2);
 }
 
+/* Contenitore del pulsante */
+.button-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+/* Pulsante Aggiungi Corso */
+.add-button {
+  background-color: #007bff;
+  color: white;
+  padding: 12px 20px;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s ease-in-out;
+}
+
+.add-button:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+}
+
 /* Contenitore della tabella */
 .table-container {
   width: 100%;
@@ -139,7 +186,7 @@ export default {
 .table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 .table th, .table td {
@@ -165,5 +212,12 @@ export default {
 .no-classi {
   color: gray;
   font-style: italic;
+}
+
+/* Messaggio di errore */
+.error-message {
+  color: red;
+  font-weight: bold;
+  margin-top: 20px;
 }
 </style>
