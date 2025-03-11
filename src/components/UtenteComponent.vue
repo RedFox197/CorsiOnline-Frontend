@@ -5,7 +5,9 @@
       <p v-if="utenti.length === 0">Nessun utente presente</p>
       <p v-for="utente in utenti" :key="utente.id">
         {{ utente.nome }} {{ utente.cognome }}
-        <button @click="mostraInfoStudente(utente)">Info</button>
+        <button @click="mostraInfoStudente(utente)">
+          Info
+        </button>
       </p>
     </div>
 
@@ -35,64 +37,42 @@
   </div>
 
   <table class="info-table" v-if="studenteSelezionato">
-    <tbody>
-      <tr>
-        <td>ID:</td>
-        <td>{{ studenteSelezionato.id }}</td>
-      </tr>
-      <tr>
-        <td>Nome:</td>
-        <td>{{ studenteSelezionato.nome }}</td>
-      </tr>
-      <tr>
-        <td>Cognome:</td>
-        <td>{{ studenteSelezionato.cognome }}</td>
-      </tr>
-      <tr>
-        <td>Email:</td>
-        <td>{{ studenteSelezionato.email }}</td>
-      </tr>
-      <tr>
-        <td>Ruolo:</td>
-        <td>{{ formatRuolo(studenteSelezionato.ruolo) }}</td>
-      </tr>
-      <tr>
-        <td>Classe:</td>
-        <td>{{ studenteSelezionato.classe?.nome || 'N/A' }}</td>
-      </tr>
-      <tr>
-        <td>Corso:</td>
-        <td>{{ studenteSelezionato.corso?.nome || 'N/A' }}</td>
-      </tr>
-    </tbody>
+    <h1>Info</h1>
+    <tr><td>ID:</td><td>{{ studenteSelezionato.id }}</td></tr>
+    <tr><td>Nome:</td><td>{{ studenteSelezionato.nome }}</td></tr>
+    <tr><td>Cognome:</td><td>{{ studenteSelezionato.cognome }}</td></tr>
+    <tr><td>Email:</td><td>{{ studenteSelezionato.email }}</td></tr>
+    <tr><td>Ruolo:</td><td>{{ formatRuolo(studenteSelezionato.ruolo) }}</td></tr>
+    <tr><td>Classe:</td><td>{{ studenteSelezionato.classe?.nome || 'N/A' }}</td></tr>
+    <tr><td>Corso:</td><td>{{ studenteSelezionato.corso?.nome || 'N/A' }}</td></tr>
   </table>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
-import axios from 'axios'
+import { onMounted, ref } from 'vue';
+import axios from 'axios';
 
-const utenti = ref([])
-const studenteSelezionato = ref(null)
+const utenti = ref([]);
+const studenteSelezionato = ref(null);
 
 const formatRuolo = (ruolo) => {
-  return ruolo ? ruolo.charAt(0).toUpperCase() + ruolo.slice(1).toLowerCase() : 'N/A'
-}
+  return ruolo ? ruolo.charAt(0).toUpperCase() + ruolo.slice(1).toLowerCase() : 'N/A';
+};
 
 const mostraInfoStudente = (utente) => {
-  studenteSelezionato.value = utente
-}
+  studenteSelezionato.value = utente;
+};
 
 const init = async () => {
   try {
-    const resUtenti = await axios.get('http://localhost:8080/utente/all')
-    utenti.value = resUtenti.data
+    const resUtenti = await axios.get('http://localhost:8080/utente/all');
+    utenti.value = resUtenti.data;
   } catch (error) {
-    console.error('Errore nel caricamento degli utenti:', error)
+    console.error('Errore nel caricamento degli utenti:', error);
   }
-}
+};
 
-onMounted(init)
+onMounted(init);
 </script>
 
 <style>
@@ -122,6 +102,7 @@ body {
 .section {
   width: 22%;
   padding: 6px;
+
 }
 
 h1 {
