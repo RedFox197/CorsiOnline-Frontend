@@ -94,6 +94,15 @@ async function deleteu(id) {
   return await apiClient.delete("/"+id);
 }
 
+/**
+ * @param {number} id utente id
+ * @param {Array<number>} classiIds array classi id
+ * @param {boolean} booldel se cancellare o meno
+ */
+async function updateClassi(id, classiIds, booldel) {
+  return await  apiClient.put("/"+id+"/classi?delete="+booldel, classiIds);
+}
+
 export default {
-  findAll, findById, getClassi, getEsami, save, update, deleteu
+  findAll, findById, getClassi, getEsami, save, update, deleteu, updateClassi
 }
