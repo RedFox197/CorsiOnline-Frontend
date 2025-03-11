@@ -1,52 +1,45 @@
 <template>
   <div class="container">
-    <h2 class="title">{{ isEditing ? "Modifica Corso" : "Nuovo Corso" }}</h2>
+    <h1 class="title">Aggiungi un Nuovo Corso</h1>
 
-    <form @submit.prevent="salva">
-      <!-- Titolo del Corso -->
-      <label for="titolo">Nome del Corso</label>
-      <input id="titolo" v-model="corsoLocal.titolo" type="text" class="input" placeholder="Inserisci il titolo" required>
+    <!-- Form per aggiungere un corso -->
+    <form @submit.prevent="salvaCorso">
+      <!-- Nome del Corso -->
+      <div class="form-group">
+        <label for="titolo">Nome del Corso:</label>
+        <input id="titolo" v-model="corso.titolo" type="text" required />
+      </div>
 
-      <!-- Descrizione -->
-      <label for="descrizione">Descrizione</label>
-      <textarea id="descrizione" v-model="corsoLocal.descrizione" class="textarea" placeholder="Descrizione..." required></textarea>
+      <!-- Descrizione del Corso -->
+      <div class="form-group">
+        <label for="descrizione">Descrizione:</label>
+        <textarea id="descrizione" v-model="corso.descrizione" required></textarea>
+      </div>
 
       <!-- Selezione Docenti -->
-      <label for="docenti">Docenti</label>
-      <select id="docenti" v-model="docenteSelezionato" class="select" @change="aggiungiDocente">
-        <option value="" disabled selected>Seleziona un docente</option>
-        <option v-for="docente in docentiDisponibili" :key="docente.id" :value="docente">
-          {{ docente.nome }} {{ docente.cognome }}
-        </option>
-      </select>
-
-      <ul class="list">
-        <li v-for="docente in corsoLocal.docenti" :key="docente.id">
-          {{ docente.nome }} {{ docente.cognome }}
-          <button type="button" @click="rimuoviDocente(docente.id)" class="remove-btn">✖</button>
-        </li>
-      </ul>
+      <div class="form-group">
+        <label for="docenti">Seleziona i Docenti:</label>
+        <select id="docenti" v-model="docentiSelezionati" multiple>
+          <option v-for="docente in docenti" :key="docente.id" :value="docente.id">
+            {{ docente.nome }} {{ docente.cognome }}
+          </option>
+        </select>
+      </div>
 
       <!-- Selezione Studenti -->
-      <label for="studenti">Studenti</label>
-      <select id="studenti" v-model="studenteSelezionato" class="select" @change="aggiungiStudente">
-        <option value="" disabled selected>Seleziona uno studente</option>
-        <option v-for="studente in studentiDisponibili" :key="studente.id" :value="studente">
-          {{ studente.nome }} {{ studente.cognome }}
-        </option>
-      </select>
-
-      <ul class="list">
-        <li v-for="studente in corsoLocal.studenti" :key="studente.id">
-          {{ studente.nome }} {{ studente.cognome }}
-          <button type="button" @click="rimuoviStudente(studente.id)" class="remove-btn">✖</button>
-        </li>
-      </ul>
+      <div class="form-group">
+        <label for="studenti">Seleziona gli Studenti:</label>
+        <select id="studenti" v-model="studentiSelezionati" multiple>
+          <option v-for="studente in studenti" :key="studente.id" :value="studente.id">
+            {{ studente.nome }} {{ studente.cognome }}
+          </option>
+        </select>
+      </div>
 
       <!-- Pulsanti -->
       <div class="button-container">
-        <button type="submit" class="save-btn">Salva</button>
-        <button type="button" @click="$emit('chiudi')" class="cancel-btn">Annulla</button>
+        <button type="submit" class="save-button">Salva</button>
+        <button type="button" @click="annulla" class="cancel-button">Annulla</button>
       </div>
     </form>
 
@@ -56,64 +49,85 @@
 </template>
 
 <script>
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import axios from "axios";
+
 export default {
-  props: {
-    corso: Object,
-    isEditing: Boolean
-  },
-  data() {
-    return {
-      corsoLocal: { ...this.corso, docenti: [], studenti: [] },
-      docenteSelezionato: "",
-      studenteSelezionato: "",
-      docentiDisponibili: [
-        { id: 1, nome: "Mario", cognome: "Rossi" },
-        { id: 2, nome: "Laura", cognome: "Bianchi" }
-      ],
-      studentiDisponibili: [
-        { id: 3, nome: "Anna", cognome: "Verdi" },
-        { id: 4, nome: "Luca", cognome: "Neri" }
-      ],
-      corsi: [
-        { id: 1, titolo: "Corso di Vue", descrizione: "Impara Vue.js da zero", docenti: [], studenti: [] },
-        { id: 2, titolo: "Corso di JavaScript", descrizione: "JS moderno e avanzato", docenti: [], studenti: [] }
-      ],
-      successMessage: ""
+  setup() {
+    const router = useRouter();
+
+    const corso = ref({
+      titolo: "",
+      descrizione: "",
+      docenti: [],
+      studenti: []
+    });
+
+    const docenti = ref([]);
+    const studenti = ref([]);
+    const docentiSelezionati = ref([]);
+    const studentiSelezionati = ref([]);
+    const successMessage = ref("");
+
+    // 🔹 Recupera tutti gli utenti e filtra per ruolo DOCENTE o STUDENTE
+    const fetchUtenti = async () => {
+      try {
+        const response = await axios.get("http://localhost:8080/api/v1/utenti");
+        const utenti = response.data;
+
+        docenti.value = utenti.filter(user => user.ruolo === "DOCENTE");
+        studenti.value = utenti.filter(user => user.ruolo === "STUDENTE");
+      } catch (error) {
+        console.error("Errore nel recupero utenti:", error);
+      }
     };
-  },
-  methods: {
-    aggiungiDocente() {
-      if (this.docenteSelezionato && !this.corsoLocal.docenti.includes(this.docenteSelezionato)) {
-        this.corsoLocal.docenti.push(this.docenteSelezionato);
+
+    // 🔹 Salva il nuovo corso con i docenti e gli studenti selezionati
+    const salvaCorso = async () => {
+      try {
+        const nuovoCorso = {
+          titolo: corso.value.titolo,
+          descrizione: corso.value.descrizione,
+          docenti: docentiSelezionati.value,
+          studenti: studentiSelezionati.value
+        };
+
+        await axios.post("http://localhost:8080/api/v1/corsi", nuovoCorso);
+        successMessage.value = "Corso aggiunto con successo!";
+
+        // Dopo 2 secondi, reindirizza alla Dashboard Corsi
+        setTimeout(() => {
+          successMessage.value = "";
+          router.push("/corso");
+        }, 2000);
+      } catch (error) {
+        console.error("Errore nel salvataggio del corso:", error);
       }
-      this.docenteSelezionato = "";
-    },
-    rimuoviDocente(id) {
-      this.corsoLocal.docenti = this.corsoLocal.docenti.filter(d => d.id !== id);
-    },
-    aggiungiStudente() {
-      if (this.studenteSelezionato && !this.corsoLocal.studenti.includes(this.studenteSelezionato)) {
-        this.corsoLocal.studenti.push(this.studenteSelezionato);
-      }
-      this.studenteSelezionato = "";
-    },
-    rimuoviStudente(id) {
-      this.corsoLocal.studenti = this.corsoLocal.studenti.filter(s => s.id !== id);
-    },
-    salva() {
-      console.log("Corso salvato:", this.corsoLocal);
-      this.corsi.push({ ...this.corsoLocal, id: this.corsi.length + 1 });
-      this.successMessage = "I tuoi dati sono stati salvati con successo!";
-      setTimeout(() => {
-        this.successMessage = "";
-        this.$router.push("/corso");
-      }, 2000);
-    }
+    };
+
+    const annulla = () => {
+      router.push("/corso");
+    };
+
+    onMounted(fetchUtenti);
+
+    return {
+      corso,
+      docenti,
+      studenti,
+      docentiSelezionati,
+      studentiSelezionati,
+      successMessage,
+      salvaCorso,
+      annulla
+    };
   }
 };
 </script>
 
 <style scoped>
+/* Contenitore principale */
 .container {
   max-width: 600px;
   margin: 40px auto;
@@ -121,55 +135,94 @@ export default {
   background: #f8f9fa;
   border-radius: 10px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
-.input, .textarea, .select {
+
+/* Titolo centrato */
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Form centrato */
+form {
   width: 100%;
-  padding: 10px;
-  margin-top: 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Form-group per centrare gli elementi */
+.form-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   margin-bottom: 15px;
+}
+
+label {
+  font-weight: bold;
+  margin-bottom: 5px;
+  align-self: flex-start;
+  margin-left: 5%;
+}
+
+/* Input, textarea e select centrati */
+input, textarea, select {
+  width: 90%;
+  padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
+  font-size: 1rem;
+  text-align: center;
 }
-.list {
-  list-style: none;
-  padding: 0;
-}
-.list li {
-  display: flex;
-  justify-content: space-between;
-  background: #e9ecef;
-  padding: 8px;
-  margin-bottom: 5px;
-  border-radius: 5px;
-}
-.remove-btn {
-  background: transparent;
-  border: none;
-  color: red;
-  font-weight: bold;
-  cursor: pointer;
-}
+
+/* Pulsanti centrati */
 .button-container {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 20px;
   margin-top: 20px;
+  width: 100%;
 }
-.save-btn {
+
+.save-button {
   background-color: #28a745;
   color: white;
   padding: 10px 15px;
   border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
 }
-.cancel-btn {
+
+.save-button:hover {
+  background-color: #218838;
+}
+
+.cancel-button {
   background-color: #dc3545;
   color: white;
   padding: 10px 15px;
   border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
 }
+
+.cancel-button:hover {
+  background-color: #c82333;
+}
+
+/* Messaggio di conferma centrato */
 .success-message {
   color: green;
   font-weight: bold;
-  text-align: center;
   margin-top: 15px;
+  text-align: center;
 }
 </style>
