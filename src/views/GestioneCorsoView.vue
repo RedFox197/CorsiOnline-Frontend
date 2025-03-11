@@ -43,6 +43,11 @@
       </div>
     </form>
 
+    <!-- Pulsante per visualizzare la lista delle classi -->
+    <button class="class-list-button" @click="vaiAClassi">
+      Vai alla Lista delle Classi
+    </button>
+
     <!-- Messaggio di conferma -->
     <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
   </div>
@@ -110,6 +115,10 @@ export default {
       router.push("/corso");
     };
 
+    const vaiAClassi = () => {
+      router.push("/classi"); // 🔹 Assicurati che il percorso sia corretto
+    };
+
     onMounted(fetchUtenti);
 
     return {
@@ -120,7 +129,8 @@ export default {
       studentiSelezionati,
       successMessage,
       salvaCorso,
-      annulla
+      annulla,
+      vaiAClassi
     };
   }
 };
@@ -216,6 +226,22 @@ input, textarea, select {
 
 .cancel-button:hover {
   background-color: #c82333;
+}
+
+/* Pulsante per la lista classi */
+.class-list-button {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.class-list-button:hover {
+  background-color: #0056b3;
 }
 
 /* Messaggio di conferma centrato */
