@@ -23,6 +23,7 @@
         <td>{{ classe.docente.nome }} {{ classe.docente.cognome }}</td>
         <td>
           <button class="btn btn-primary btn-sm" @click="editClasse(classe)">Modifica</button>
+          <button class="btn btn-danger btn-sm" @click="deleteClasse(classe.id)">Elimina</button>
         </td>
       </tr>
       </tbody>
@@ -82,6 +83,13 @@ const editClasse = (classe) => {
     modalInstance = new Modal(document.getElementById('editModal'))
   }
   modalInstance.show() // Apre il modal
+}
+
+const deleteClasse = (id) => {
+  axios.delete(`http://localhost:8080/api/v1/classi/${id}`)
+    .then(() => {
+      fetchClassi()
+    });
 }
 
 const saveClasse = async () => {
