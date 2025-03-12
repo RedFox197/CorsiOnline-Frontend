@@ -37,7 +37,7 @@ const apiClient = axios.create({
  * @returns {Promise<Array<Utente>>}
  */
 async function findAll() {
-  const response = await apiClient.get();
+  const response = await apiClient.get("");
   return response.data;
 }
 
