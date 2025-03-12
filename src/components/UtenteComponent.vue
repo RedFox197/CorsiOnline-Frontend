@@ -68,7 +68,7 @@
               <option value="DOCENTE">Docente</option>
             </select>
             <label>Classe:</label>
-            <select v-model="selectedUtente.classe.id" multiple class="form-control">
+            <select v-model="selectedUtente.classiIds" multiple class="form-control">
               <option v-for="classe in classi" :key="classe.id" :value="classe.id">
                 {{ classe.nome }}
               </option>
@@ -137,7 +137,7 @@ const selectedUtente = ref({
   cognome: '',
   email: '',
   ruolo: '',
-  classe: { id: null },
+  classiIds: [],
 })
 const newUtente = ref({
   nome: '',
@@ -183,7 +183,7 @@ const saveUtente = async () => {
     await utenteService.update(selectedUtente.value.id, selectedUtente.value)
     await utenteService.updateClassi(
       selectedUtente.value.id,
-      [selectedUtente.value.classe.id],
+      selectedUtente.value.classiIds,
       false,
     )
     fetchUtenti()
