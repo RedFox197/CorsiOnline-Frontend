@@ -95,14 +95,14 @@ async function deleteu(id) {
 }
 
 /**
- * @param {number} id utente id
- * @param {Array<number>} classiIds array classi id
- * @param {boolean} booldel se cancellare o meno
+ * Recupera tutte le classi
+ * @returns {Promise<Array<Classe>>}
  */
-async function updateClassi(id, classiIds, booldel) {
-  return await  apiClient.put("/"+id+"/classi?delete="+booldel, classiIds);
+async function findAllClassi() {
+  const response = await axios.get('http://localhost:8080/api/v1/classi');
+  return response.data;
 }
 
 export default {
-  findAll, findById, getClassi, getEsami, save, update, deleteu, updateClassi
-}
+  findAll, findById, getClassi, getEsami, save, update, deleteu, findAllClassi
+};
