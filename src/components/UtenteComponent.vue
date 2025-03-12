@@ -168,9 +168,10 @@ const saveUtente = async () => {
 const createUtente = async () => {
   try {
     await utenteService.save(newUtente.value);
-    fetchUtenti();
+    await fetchUtenti();
     createModalInstance.hide();
-    newUtente.value = { nome: '', cognome: '', email: '', ruolo: '' }; // Reset campi
+    newUtente.value = { nome: '', cognome: '', email: '', ruolo: '' };
+    window.location.reload();
   } catch (error) {
     console.error('Errore nella creazione dell\'utente:', error);
   }
