@@ -1,6 +1,7 @@
 <template>
   <div class="container mt-4">
     <h2 class="page-title">Elenco Corsi Disponibili</h2>
+
     <div class="d-flex justify-content-start mb-3">
       <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createModal">
         Aggiungi Nuovo Corso
@@ -14,6 +15,7 @@
           <th>Nome Corso</th>
           <th>Descrizione</th>
           <th>Classi Associate</th>
+          <th>Azioni</th>
         </tr>
       </thead>
       <tbody>
@@ -27,6 +29,10 @@
             </ul>
             <span v-else>Nessuna classe associata</span>
           </td>
+          <td>
+            <button class="btn btn-primary btn-sm" @click="openEditModal(corso)">Modifica</button>
+            <button class="btn btn-danger btn-sm" @click="deleteCorso(corso.id)">Elimina</button>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -36,7 +42,7 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="createModalLabel">Crea Nuovo Corso</h5>
+            <h5 class="modal-title">Crea Nuovo Corso</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
@@ -60,6 +66,36 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal per Modificare un Corso -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Modifica Corso</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <label>Nome Corso:</label>
+            <input v-model="editCorso.titolo" class="form-control" />
+
+            <label>Descrizione:</label>
+            <textarea v-model="editCorso.descrizione" class="form-control"></textarea>
+
+            <label>Seleziona Classe:</label>
+            <select v-model="editCorso.classeId" class="form-control">
+              <option v-for="classe in classi" :key="classe.id" :value="classe.id">
+                {{ classe.nome }}
+              </option>
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+            <button class="btn btn-success" @click="updateCorso">Salva Modifiche</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -71,11 +107,8 @@ import { Modal } from "bootstrap";
 
 const corsi = ref([]);
 const classi = ref([]);
-const newCorso = ref({
-  titolo: "",
-  descrizione: "",
-  classeId: null,
-});
+const newCorso = ref({ titolo: "", descrizione: "", classeId: null });
+const editCorso = ref({ id: null, titolo: "", descrizione: "", classeId: null });
 
 // Recupera i corsi e le classi al caricamento
 const fetchCorsi = async () => {
@@ -106,16 +139,51 @@ const createCorso = async () => {
     };
     await CorsoService.save(corsoData);
     fetchCorsi();
-    closeModal(); // Chiude il modal dopo il salvataggio
+    closeModal("createModal");
     newCorso.value = { titolo: "", descrizione: "", classeId: null };
   } catch (error) {
     console.error("Errore nella creazione del corso", error);
   }
 };
 
+// Apertura modale modifica
+const openEditModal = (corso) => {
+  editCorso.value = { ...corso, classeId: corso.classi?.[0]?.id || null };
+  const modalElement = document.getElementById("editModal");
+  new Modal(modalElement).show();
+};
+
+// Modifica di un corso
+const updateCorso = async () => {
+  try {
+    const corsoData = {
+      titolo: editCorso.value.titolo,
+      descrizione: editCorso.value.descrizione,
+      classi: [{ id: editCorso.value.classeId }],
+    };
+    await CorsoService.update(editCorso.value.id, corsoData);
+    fetchCorsi();
+    closeModal("editModal");
+  } catch (error) {
+    console.error("Errore nella modifica del corso:", error);
+  }
+};
+
+// Eliminazione di un corso
+const deleteCorso = async (id) => {
+  if (confirm("Sei sicuro di voler eliminare questo corso?")) {
+    try {
+      await CorsoService.deleteu(id);
+      fetchCorsi();
+    } catch (error) {
+      console.error("Errore nella cancellazione del corso:", error);
+    }
+  }
+};
+
 // Chiude il modal
-const closeModal = () => {
-  const modalElement = document.getElementById("createModal");
+const closeModal = (modalId) => {
+  const modalElement = document.getElementById(modalId);
   if (modalElement) {
     const modal = Modal.getInstance(modalElement) || new Modal(modalElement);
     modal.hide();
@@ -127,21 +195,3 @@ onMounted(() => {
   fetchClassi();
 });
 </script>
-
-<style scoped>
-.container {
-  max-width: 80%;
-  margin: auto;
-}
-
-.page-title {
-  font-size: 1.75rem;
-  font-weight: bold;
-  margin-bottom: 20px;
-}
-
-.btn-success {
-  background-color: #198754;
-  border-color: #198754;
-}
-</style>
