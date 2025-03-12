@@ -103,6 +103,15 @@ async function findAllClassi() {
   return response.data;
 }
 
+/**
+ * @param {number} id utente id
+ * @param {Array<number>} classiIds array classi id
+ * @param {boolean} booldel se cancellare o meno
+ */
+async function updateClassi(id, classiIds, booldel) {
+  return await apiClient.put('/' + id + '/classi?delete=' + booldel, classiIds)
+}
+
 export default {
-  findAll, findById, getClassi, getEsami, save, update, deleteu, findAllClassi
+  findAll, findById, getClassi, getEsami, save, update, deleteu, findAllClassi, updateClassi
 };

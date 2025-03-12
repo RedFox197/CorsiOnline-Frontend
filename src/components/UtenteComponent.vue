@@ -29,7 +29,9 @@
           </td>
           <td>
             <button class="btn btn-primary btn-sm" @click="editUtente(utente)">Modifica</button>
-            <button class="btn btn-danger btn-sm ms-2" @click="deleteUtente(utente.id)">Elimina</button>
+            <button class="btn btn-danger btn-sm ms-2" @click="deleteUtente(utente.id)">
+              Elimina
+            </button>
           </td>
         </tr>
       </tbody>
@@ -41,40 +43,44 @@
     </button>
 
     <!-- Modal Modifica Utente -->
-<div class="modal fade" id="editModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Modifica Utente</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <label>Nome:</label>
-        <input v-model="selectedUtente.nome" class="form-control" />
-        <label>Cognome:</label>
-        <input v-model="selectedUtente.cognome" class="form-control" />
-        <label>Email:</label>
-        <input v-model="selectedUtente.email" type="email" class="form-control" />
-        <label>Ruolo:</label>
-        <select v-model="selectedUtente.ruolo" class="form-control">
-          <option value="STUDENTE">Studente</option>
-          <option value="DOCENTE">Docente</option>
-        </select>
-        <label>Classe:</label>
-            <select v-model="newUtente.classe" class="form-control">
+    <div class="modal fade" id="editModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Modifica Utente</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <label>Nome:</label>
+            <input v-model="selectedUtente.nome" class="form-control" />
+            <label>Cognome:</label>
+            <input v-model="selectedUtente.cognome" class="form-control" />
+            <label>Email:</label>
+            <input v-model="selectedUtente.email" type="email" class="form-control" />
+            <label>Ruolo:</label>
+            <select v-model="selectedUtente.ruolo" class="form-control">
+              <option value="STUDENTE">Studente</option>
+              <option value="DOCENTE">Docente</option>
+            </select>
+            <label>Classe:</label>
+            <select v-model="selectedUtente.classe.id" multiple class="form-control">
               <option v-for="classe in classi" :key="classe.id" :value="classe.id">
                 {{ classe.nome }}
               </option>
             </select>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
-        <button class="btn btn-primary" @click="saveUtente">Salva</button>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+            <button class="btn btn-primary" @click="saveUtente">Salva</button>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
-
 
     <!-- Modal Creazione Utente -->
     <div class="modal fade" id="createModal" tabindex="-1">
@@ -82,7 +88,12 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Crea Nuovo Utente</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
           </div>
           <div class="modal-body">
             <label>Nome:</label>
@@ -92,17 +103,16 @@
             <label>Email:</label>
             <input v-model="newUtente.email" type="email" class="form-control" />
             <label>Ruolo:</label>
-<select v-model="newUtente.ruolo" class="form-control">
-  <option value="STUDENTE">Studente</option>
-  <option value="DOCENTE">Docente</option>
-</select>
-      <label>Classe:</label>
-            <select v-model="newUtente.classe" class="form-control">
+            <select v-model="newUtente.ruolo" class="form-control">
+              <option value="STUDENTE">Studente</option>
+              <option value="DOCENTE">Docente</option>
+            </select>
+            <label>Classe:</label>
+            <select v-model="newUtente.classiIds" multiple class="form-control">
               <option v-for="classe in classi" :key="classe.id" :value="classe.id">
                 {{ classe.nome }}
               </option>
             </select>
-
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
@@ -115,90 +125,100 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import utenteService from '@/service/UtenteService.js';
-import { Modal } from 'bootstrap';
+import { ref, onMounted } from 'vue'
+import utenteService from '@/service/UtenteService.js'
+import { Modal } from 'bootstrap'
 
-const classi = ref([]);
-const utenti = ref([]);
-const selectedUtente = ref({});
+const classi = ref([])
+const utenti = ref([])
+const selectedUtente = ref({
+  id: null,
+  nome: '',
+  cognome: '',
+  email: '',
+  ruolo: '',
+  classe: { id: null },
+})
 const newUtente = ref({
   nome: '',
   cognome: '',
   email: '',
-  ruolo: ''
-});
+  ruolo: '',
+  classiIds: [],
+})
 
-let modalInstance = null;
-let createModalInstance = null;
+let modalInstance = null
+let createModalInstance = null
 
 const fetchUtenti = async () => {
   try {
-    utenti.value = await utenteService.findAll();
+    utenti.value = await utenteService.findAll()
     for (let utente of utenti.value) {
-      utente.classe = await utenteService.getClassi(utente.id);
-      utente.esami = await utenteService.getEsami(utente.id);
+      utente.classe = await utenteService.getClassi(utente.id)
+      utente.esami = await utenteService.getEsami(utente.id)
     }
   } catch (error) {
-    console.error('Errore nel recupero utenti:', error);
+    console.error('Errore nel recupero utenti:', error)
   }
-};
+}
 
 const fetchClassi = async () => {
   try {
-    classi.value = await utenteService.findAllClassi();
+    classi.value = await utenteService.findAllClassi()
   } catch (error) {
-    console.error('Errore nel recupero classi:', error);
+    console.error('Errore nel recupero classi:', error)
   }
-};
-
+}
 
 const editUtente = (utente) => {
-  selectedUtente.value = { ...utente };
+  selectedUtente.value = { ...utente }
   if (!modalInstance) {
-    modalInstance = new Modal(document.getElementById('editModal'));
+    modalInstance = new Modal(document.getElementById('editModal'))
   }
-  modalInstance.show();
-};
+  modalInstance.show()
+}
 
 const saveUtente = async () => {
   try {
-    await utenteService.update(selectedUtente.value.id, selectedUtente.value);
-    fetchUtenti();
-    modalInstance.hide();
+    await utenteService.update(selectedUtente.value.id, selectedUtente.value)
+    await utenteService.updateClassi(
+      selectedUtente.value.id,
+      [selectedUtente.value.classe.id],
+      false,
+    )
+    fetchUtenti()
+    modalInstance.hide()
   } catch (error) {
-    console.error('Errore nel salvataggio:', error);
+    console.error('Errore nel salvataggio:', error)
   }
-};
+}
 
 const createUtente = async () => {
   try {
-    await utenteService.save(newUtente.value);
-    await fetchUtenti();
-    createModalInstance.hide();
-    newUtente.value = { nome: '', cognome: '', email: '', ruolo: '' };
-    window.location.reload();
+    await utenteService.save(newUtente.value)
+    await fetchUtenti()
+    createModalInstance.hide()
+    newUtente.value = { nome: '', cognome: '', email: '', ruolo: '', classiIds: [] }
+    window.location.reload()
   } catch (error) {
-    console.error('Errore nella creazione dell\'utente:', error);
+    console.error("Errore nella creazione dell'utente:", error)
   }
-};
+}
 
 const deleteUtente = async (id) => {
   if (confirm('Sei sicuro di voler eliminare questo utente?')) {
     try {
-      await utenteService.deleteu(id);
-      fetchUtenti();
+      await utenteService.deleteu(id)
+      fetchUtenti()
     } catch (error) {
-      console.error('Errore nell\'eliminazione:', error);
+      console.error("Errore nell'eliminazione:", error)
     }
   }
-};
+}
 
 onMounted(() => {
-  fetchUtenti();
-  fetchClassi();
-  createModalInstance = new Modal(document.getElementById('createModal'));
-});
+  fetchUtenti()
+  fetchClassi()
+  createModalInstance = new Modal(document.getElementById('createModal'))
+})
 </script>
-
-
