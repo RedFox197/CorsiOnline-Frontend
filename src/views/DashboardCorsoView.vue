@@ -1,223 +1,147 @@
 <template>
-  <div class="container">
-    <!-- Titolo grande centrato -->
-    <h1 class="title">Elenco corsi disponibili</h1>
-
-    <!-- Barra di ricerca per filtrare i corsi -->
-    <div class="search-container">
-      <input
-        type="text"
-        v-model="searchQuery"
-        placeholder="Cerca un corso..."
-        class="search-input"
-      />
+  <div class="container mt-4">
+    <h2 class="page-title">Elenco Corsi Disponibili</h2>
+    <div class="d-flex justify-content-start mb-3">
+      <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createModal">
+        Aggiungi Nuovo Corso
+      </button>
     </div>
 
-    <!-- Pulsante per aggiungere un nuovo corso -->
-    <div class="button-wrapper">
-      <button @click="vaiAggiungiCorso" class="add-button">+ Aggiungi Corso</button>
-    </div>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nome Corso</th>
+          <th>Descrizione</th>
+          <th>Classi Associate</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="corso in corsi" :key="corso.id">
+          <td>{{ corso.id }}</td>
+          <td>{{ corso.titolo }}</td>
+          <td>{{ corso.descrizione }}</td>
+          <td>
+            <ul v-if="corso.classi && corso.classi.length">
+              <li v-for="classe in corso.classi" :key="classe.id">{{ classe.nome }}</li>
+            </ul>
+            <span v-else>Nessuna classe associata</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-    <!-- Tabella dei corsi -->
-    <div class="table-container">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nome Corso</th>
-            <th>Descrizione</th>
-            <th>Classi Associate</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="corso in filteredCorsi" :key="corso.id">
-            <td>{{ corso.id }}</td>
-            <td>{{ corso.titolo }}</td>
-            <td>{{ corso.descrizione }}</td>
-            <td>
-              <span v-if="corso.classi.length > 0">
-                {{ corso.classi.join(', ') }}
-              </span>
-              <span v-else class="no-classi">Nessuna classe associata</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <!-- Modal per Creare un Corso -->
+    <div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="createModalLabel">Crea Nuovo Corso</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <label>Nome Corso:</label>
+            <input v-model="newCorso.titolo" class="form-control" />
 
-    <!-- Messaggio di errore API -->
-    <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+            <label>Descrizione:</label>
+            <textarea v-model="newCorso.descrizione" class="form-control"></textarea>
+
+            <label>Seleziona Classe:</label>
+            <select v-model="newCorso.classeId" class="form-control">
+              <option v-for="classe in classi" :key="classe.id" :value="classe.id">
+                {{ classe.nome }}
+              </option>
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+            <button class="btn btn-success" @click="createCorso">Crea Corso</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
-<script>
-import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import axios from 'axios';
+<script setup>
+import { ref, onMounted } from "vue";
+import CorsoService from "@/service/CorsoService";
+import ClasseService from "@/service/ClasseService";
+import { Modal } from "bootstrap";
 
-export default {
-  setup() {
-    const searchQuery = ref("");
-    const router = useRouter();
-    const corsi = ref([]);
-    const errorMessage = ref("");
+const corsi = ref([]);
+const classi = ref([]);
+const newCorso = ref({
+  titolo: "",
+  descrizione: "",
+  classeId: null,
+});
 
-    // Funzione per recuperare i corsi dall'API
-    const fetchCorsi = async () => {
-      try {
-        const response = await axios.get('http://localhost:8080/api/v1/corsi');
-        corsi.value = response.data;
-
-        // Recupera le classi associate per ogni corso
-        for (let corso of corsi.value) {
-          try {
-            const classiResponse = await axios.get(`http://localhost:8080/api/v1/corsi/${corso.id}/classi`);
-            corso.classi = classiResponse.data.map(c => c.nome); // Supponendo che la classe abbia una proprietà `nome`
-          } catch (error) {
-            console.error(`Errore nel recupero delle classi per il corso ${corso.id}:`, error);
-            corso.classi = []; // Nessuna classe associata in caso di errore
-          }
-        }
-      } catch (error) {
-        console.error("Errore nel recupero corsi:", error);
-        errorMessage.value = "Errore nel caricamento dei corsi. Riprova più tardi.";
-      }
-    };
-
-    // Computed per filtrare i corsi in base alla ricerca
-    const filteredCorsi = computed(() => {
-      return corsi.value.filter(corso =>
-        corso.titolo.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-        corso.descrizione.toLowerCase().includes(searchQuery.value.toLowerCase())
-      );
-    });
-
-    // Funzione per navigare alla pagina di aggiunta corsi
-    const vaiAggiungiCorso = () => {
-      router.push('/corso/gestione'); // ✅ Rotta per aggiungere un corso
-    };
-
-    onMounted(fetchCorsi);
-
-    return { searchQuery, filteredCorsi, vaiAggiungiCorso, errorMessage };
+// Recupera i corsi e le classi al caricamento
+const fetchCorsi = async () => {
+  try {
+    const response = await CorsoService.findAll();
+    corsi.value = response;
+  } catch (error) {
+    console.error("Errore nel recupero dei corsi:", error);
   }
 };
+
+const fetchClassi = async () => {
+  try {
+    const response = await ClasseService.findAll();
+    classi.value = response;
+  } catch (error) {
+    console.error("Errore nel recupero delle classi:", error);
+  }
+};
+
+// Creazione di un nuovo corso
+const createCorso = async () => {
+  try {
+    const corsoData = {
+      titolo: newCorso.value.titolo,
+      descrizione: newCorso.value.descrizione,
+      classi: [{ id: newCorso.value.classeId }],
+    };
+    await CorsoService.save(corsoData);
+    fetchCorsi();
+    closeModal(); // Chiude il modal dopo il salvataggio
+    newCorso.value = { titolo: "", descrizione: "", classeId: null };
+  } catch (error) {
+    console.error("Errore nella creazione del corso", error);
+  }
+};
+
+// Chiude il modal
+const closeModal = () => {
+  const modalElement = document.getElementById("createModal");
+  if (modalElement) {
+    const modal = Modal.getInstance(modalElement) || new Modal(modalElement);
+    modal.hide();
+  }
+};
+
+onMounted(() => {
+  fetchCorsi();
+  fetchClassi();
+});
 </script>
 
 <style scoped>
-/* Contenitore principale */
 .container {
-  text-align: center;
-  padding: 40px 20px;
-  max-width: 1200px;
+  max-width: 80%;
   margin: auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
-/* Titolo grande centrato */
-.title {
-  font-size: 2.5rem;
+.page-title {
+  font-size: 1.75rem;
   font-weight: bold;
-  color: black;
-  text-align: center;
   margin-bottom: 20px;
 }
 
-/* Contenitore della barra di ricerca */
-.search-container {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  margin-bottom: 20px;
-}
-
-/* Input di ricerca */
-.search-input {
-  width: 50%;
-  max-width: 500px;
-  padding: 12px;
-  font-size: 1rem;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  text-align: center;
-  outline: none;
-  transition: all 0.3s ease-in-out;
-}
-
-.search-input:focus {
-  border-color: #007bff;
-  box-shadow: 0px 4px 10px rgba(0, 123, 255, 0.2);
-}
-
-/* Contenitore del pulsante */
-.button-wrapper {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  margin-bottom: 20px;
-}
-
-/* Pulsante Aggiungi Corso */
-.add-button {
-  background-color: #007bff;
-  color: white;
-  padding: 12px 20px;
-  font-size: 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  border: none;
-  transition: all 0.3s ease-in-out;
-}
-
-.add-button:hover {
-  background-color: #0056b3;
-  transform: scale(1.05);
-}
-
-/* Contenitore della tabella */
-.table-container {
-  width: 100%;
-  overflow-x: auto;
-}
-
-/* Stile tabella */
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-.table th, .table td {
-  border: 1px solid #ddd;
-  padding: 12px;
-  text-align: left;
-}
-
-.table th {
-  background-color: #007bff;
-  color: white;
-}
-
-.table tr:nth-child(even) {
-  background-color: #f8f9fa;
-}
-
-.table tr:hover {
-  background-color: #e9ecef;
-}
-
-/* Testo "Nessuna classe associata" */
-.no-classi {
-  color: gray;
-  font-style: italic;
-}
-
-/* Messaggio di errore */
-.error-message {
-  color: red;
-  font-weight: bold;
-  margin-top: 20px;
+.btn-success {
+  background-color: #198754;
+  border-color: #198754;
 }
 </style>
