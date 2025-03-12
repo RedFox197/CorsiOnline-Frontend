@@ -138,9 +138,7 @@ const createCorso = async () => {
       classi: [{ id: newCorso.value.classeId }],
     };
     await CorsoService.save(corsoData);
-    fetchCorsi();
-    closeModal("createModal");
-    newCorso.value = { titolo: "", descrizione: "", classeId: null };
+    window.location.reload(); // Ricarica la pagina dopo la creazione
   } catch (error) {
     console.error("Errore nella creazione del corso", error);
   }
@@ -162,8 +160,7 @@ const updateCorso = async () => {
       classi: [{ id: editCorso.value.classeId }],
     };
     await CorsoService.update(editCorso.value.id, corsoData);
-    fetchCorsi();
-    closeModal("editModal");
+    window.location.reload(); // Ricarica la pagina dopo la modifica
   } catch (error) {
     console.error("Errore nella modifica del corso:", error);
   }
@@ -174,19 +171,10 @@ const deleteCorso = async (id) => {
   if (confirm("Sei sicuro di voler eliminare questo corso?")) {
     try {
       await CorsoService.deleteu(id);
-      fetchCorsi();
+      window.location.reload(); // Ricarica la pagina dopo l'eliminazione
     } catch (error) {
       console.error("Errore nella cancellazione del corso:", error);
     }
-  }
-};
-
-// Chiude il modal
-const closeModal = (modalId) => {
-  const modalElement = document.getElementById(modalId);
-  if (modalElement) {
-    const modal = Modal.getInstance(modalElement) || new Modal(modalElement);
-    modal.hide();
   }
 };
 
