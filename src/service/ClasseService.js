@@ -37,7 +37,7 @@ const apiClient = axios.create({
  * @returns {Promise<Array<Classe>>}
  */
 async function findAll() {
-  const response = await apiClient.get()
+  const response = await apiClient.get('')
   return response.data
 }
 
@@ -70,19 +70,42 @@ async function getStudenti(id) {
 }
 
 /**
+ * @param {number} id
+ * @param {Array<Utente>} studenti
+ */
+async function updateStudenti(id, studenti) {
+  return await apiClient.put('/' + id + '/studenti' + id, studenti)
+}
+
+/**
  * @param {Classe} classe
  */
 async function save(classe) {
   return await apiClient.post('', classe)
 }
 
-//update con un path /utenti/id put poi simile al save anche con jsdoc
 /**
  * @param {number} id
  * @param {Classe} classe
  */
 async function update(id, classe) {
   return await apiClient.put('/' + id, classe)
+}
+
+/**
+ * @param {number} id
+ * @param {number} corsoId
+ */
+async function setCorso(id, corsoId) {
+  return await apiClient.put('/' + id + '/corso?corsoId=' + corsoId)
+}
+
+/**
+ * @param {number} id
+ * @param {number} utenteId
+ */
+async function setDocente(id, utenteId) {
+  return await apiClient.put('/' + id + '/docente?utenteId=' + utenteId)
 }
 
 /**
@@ -99,5 +122,8 @@ export default {
   update,
   deleteu,
   getLezioni,
-  getStudenti
+  getStudenti,
+  setCorso,
+  setDocente,
+  updateStudenti,
 }
