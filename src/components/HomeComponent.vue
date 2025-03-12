@@ -16,6 +16,7 @@
       </div>
     </div>
   </div>
+  <img src="@/assets/logo.png" alt="Descrizione immagine" class="home-image">
 </template>
 
 <script>
@@ -71,6 +72,14 @@ export default {
 .sections {
   margin-top: 20px;
 }
+
+.home-image {
+  display: block;
+  margin: 20px auto;
+  max-width: 10%;
+  border-radius: 10px;
+}
+
 .section {
   margin-bottom: 10px;
 }
