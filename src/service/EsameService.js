@@ -35,7 +35,7 @@
 import axios from 'axios'
 
 const apiClient = axios.create({
-  baseURL: 'http://localhost:8080/api/v1/esame',
+  baseURL: 'http://localhost:8080/api/v1/esami',
   headers: {
     'Content-Type': 'application/json',
   },

@@ -118,6 +118,7 @@
 
 <script>
 import axios from 'axios'
+import esameService from '@/service/EsameService.js'
 
 export default {
   data() {
@@ -153,10 +154,10 @@ export default {
         this.esamiCaricati = false
 
         // Utilizzo di axios per la richiesta API
-        const response = await axios.get('http://localhost:8080/api/v1/esami')
+        const response = await esameService.findAll();
 
         // Con axios, i dati sono già nel formato JSON nell'oggetto response.data
-        this.esami = response.data
+        this.esami = response
       } catch (error) {
         console.error('Errore durante il caricamento degli esami:', error)
         // Gestione errori più dettagliata con axios
