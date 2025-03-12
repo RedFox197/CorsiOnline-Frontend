@@ -113,6 +113,7 @@ import { ref, onMounted } from 'vue';
 import utenteService from '@/service/UtenteService.js';
 import { Modal } from 'bootstrap';
 
+const classi = ref([]);
 const utenti = ref([]);
 const selectedUtente = ref({});
 const newUtente = ref({
@@ -136,6 +137,15 @@ const fetchUtenti = async () => {
     console.error('Errore nel recupero utenti:', error);
   }
 };
+
+const fetchClassi = async () => {
+  try {
+    classi.value = await utenteService.findAllClassi();
+  } catch (error) {
+    console.error('Errore nel recupero classi:', error);
+  }
+};
+
 
 const editUtente = (utente) => {
   selectedUtente.value = { ...utente };
@@ -179,6 +189,7 @@ const deleteUtente = async (id) => {
 
 onMounted(() => {
   fetchUtenti();
+  fetchClassi();
   createModalInstance = new Modal(document.getElementById('createModal'));
 });
 </script>
