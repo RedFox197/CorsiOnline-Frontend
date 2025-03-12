@@ -60,6 +60,12 @@
           <option value="STUDENTE">Studente</option>
           <option value="DOCENTE">Docente</option>
         </select>
+        <label>Classe:</label>
+            <select v-model="newUtente.classe" class="form-control">
+              <option v-for="classe in classi" :key="classe.id" :value="classe.id">
+                {{ classe.nome }}
+              </option>
+            </select>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
