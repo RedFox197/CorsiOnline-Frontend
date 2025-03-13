@@ -77,18 +77,25 @@
         </div>
       </div>
     </div>
-          <!-- Modal per Mostra Dettagli -->
-          <div class="modal fade" id="detailsModal" tabindex="-1">
+    <!-- Modal per Mostra Dettagli -->
+    <div class="modal fade" id="detailsModal" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Dettagli Classe</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
           </div>
           <div class="modal-body">
             <h6>Utenti:</h6>
             <ul>
-              <li v-for="utente in utenti" :key="utente.id">{{ utente.nome }} - {{ utente.ruolo }}</li>
+              <li v-for="utente in utenti" :key="utente.id">
+                {{ utente.nome }} - {{ utente.ruolo }}
+              </li>
             </ul>
           </div>
           <div class="modal-footer">
@@ -98,17 +105,17 @@
       </div>
     </div>
   </div>
-
-
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
 import CreaClasse from '@/components/classe/CreaClasse.vue'
 import ClasseService from '@/service/ClasseService'
 import UtenteService from '@/service/UtenteService'
 import { Modal } from 'bootstrap'
+import utenteService from '@/service/UtenteService'
+import classeService from '@/service/ClasseService'
+import corsoService from '@/service/CorsoService.js'
 
 const classi = ref([])
 const selectedClasse = ref({
@@ -121,7 +128,6 @@ const selectedClasse = ref({
 })
 let modalInstance = null
 
-
 const utenti = ref([])
 const corsi = ref([])
 const docenti = ref([])
@@ -129,8 +135,7 @@ let detailsModal = null
 
 const fetchCorsi = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/v1/corsi')
-    corsi.value = response.data
+    corsi.value = await corsoService.findAll()
   } catch (error) {
     console.error('Errore nel recupero corsi:', error)
   }
@@ -138,8 +143,7 @@ const fetchCorsi = async () => {
 
 const fetchDocenti = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/v1/utenti')
-    docenti.value = response.data
+    docenti.value = await utenteService.findByRuolo('DOCENTE')
   } catch (error) {
     console.error('Errore nel recupero docenti:', error)
   }
@@ -147,8 +151,7 @@ const fetchDocenti = async () => {
 
 const fetchClassi = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/v1/classi')
-    classi.value = response.data
+    classi.value = await classeService.findAll()
   } catch (error) {
     console.error('Errore nel recupero classi:', error)
   }
@@ -156,7 +159,7 @@ const fetchClassi = async () => {
 
 const editClasse = (classe) => {
   selectedClasse.value = {
-    ...classe
+    ...classe,
   }
   if (!modalInstance) {
     modalInstance = new Modal(document.getElementById('editModal'))
@@ -167,19 +170,18 @@ const editClasse = (classe) => {
 }
 
 const deleteClasse = (id) => {
-  axios.delete(`http://localhost:8080/api/v1/classi/${id}`).then(() => {
+  classeService.deleteu(id).then(() => {
     fetchClassi()
   })
 }
 
 const saveClasse = async () => {
   try {
-    await axios.put(
-      `http://localhost:8080/api/v1/classi/${selectedClasse.value.id}`,
-      selectedClasse.value,
-    )
-    fetchClassi()
-    modalInstance.hide() // Chiude il modal
+    classeService.update(selectedClasse.value.id, selectedClasse.value).then(() => {
+      fetchClassi()
+    })
+
+    modalInstance.hide()
   } catch (error) {
     console.error('Errore nel salvataggio:', error)
   }
@@ -190,7 +192,10 @@ const showDetails = async (id) => {
     const classe = await ClasseService.findById(id)
     const studenti = await ClasseService.getStudenti(id)
     const docente = classe.docente ? [await UtenteService.findById(classe.docente.id)] : []
-    utenti.value = [...studenti, ...docente].map(utente => ({ nome: utente.nome, ruolo: utente.ruolo }))
+    utenti.value = [...studenti, ...docente].map((utente) => ({
+      nome: utente.nome,
+      ruolo: utente.ruolo,
+    }))
 
     if (!detailsModal) {
       detailsModal = new Modal(document.getElementById('detailsModal'))

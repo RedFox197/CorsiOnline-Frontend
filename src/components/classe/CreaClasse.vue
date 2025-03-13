@@ -60,7 +60,9 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import utenteService from '@/service/UtenteService.js'
+import corsoService from '@/service/CorsoService.js'
+import classeService from '@/service/ClasseService.js'
 
 const newClasse = ref({
   nome: '',
@@ -81,8 +83,7 @@ const emit = defineEmits('classi-created')
 
 const fetchCorsi = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/v1/corsi')
-    corsi.value = response.data
+    corsi.value = await corsoService.findAll()
   } catch (error) {
     console.error('Errore nel recupero corsi:', error)
   }
@@ -90,8 +91,8 @@ const fetchCorsi = async () => {
 
 const fetchDocenti = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/v1/utenti')
-    docenti.value = response.data
+    docenti.value = await utenteService.findByRuolo('DOCENTE')
+    console.log(docenti.value)
   } catch (error) {
     console.error('Errore nel recupero docenti:', error)
   }
@@ -99,16 +100,15 @@ const fetchDocenti = async () => {
 
 const createClasse = async () => {
   try {
-    // Costruisci l'oggetto classe conforme al formato JSON
     const classeData = {
       ...newClasse.value,
       corso: { id: newClasse.value.corso.id },
       docente: { id: newClasse.value.docente.id },
     }
-    const response = await axios.post('http://localhost:8080/api/v1/classi', classeData)
-    emit('classi-created') // Emit l'evento per notificare il componente genitore
+    const response = await classeService.save(classeData)
+    emit('classi-created')
     console.log('Classe creata', response.data)
-    // Reset the form after creating a class
+
     newClasse.value = {
       nome: '',
       dataInizio: '',

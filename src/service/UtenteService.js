@@ -46,8 +46,10 @@ async function findAll() {
  * @param ruolo {string}
  * @returns {Promise<Array<Utente>>}
  */
+//http://localhost:8080/api/v1/utenti?ruolo=DOCENTE
 async function findByRuolo(ruolo) {
-  const response = await apiClient.get("?ruolo=" + ruolo);
+  //get ruoli apiClient request param ruolo booleano
+  const response = await apiClient.get("", {params: {ruolo: ruolo}});
   return response.data;
 }
 
@@ -123,5 +125,5 @@ async function updateClassi(id, classiIds, booldel) {
 }
 
 export default {
-  findAll, findById, getClassi, getEsami, save, update, deleteu, findAllClassi, updateClassi
+  findAll, findById, getClassi, getEsami, save, update, deleteu, findAllClassi, updateClassi, findByRuolo
 };
