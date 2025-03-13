@@ -1,10 +1,22 @@
 <template>
-  <div class="modal fade" id="lezioniModal" tabindex="-1" aria-labelledby="lezioniModalLabel" aria-hidden="true">
+  <div
+    class="modal fade"
+    id="lezioniModal"
+    tabindex="-1"
+    aria-labelledby="lezioniModalLabel"
+    aria-hidden="true"
+  >
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Calendario Lezioni - Classe {{ classeId }}</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @click="closeModal"></button>
+          <h5 class="modal-title">Calendario Lezioni - Classe {{ lclasseId }}</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+            @click="closeModal"
+          ></button>
         </div>
         <div class="modal-body">
           <button class="btn btn-primary mb-3" @click="openForm">
@@ -27,17 +39,24 @@
                 <input v-model="form.data" type="datetime-local" class="form-control" required />
               </div>
               <div class="d-flex gap-2">
-                <button class="btn btn-success" @click="saveLesson">{{ editingLesson.id ? 'Aggiorna' : 'Crea' }}</button>
+                <button class="btn btn-success" @click="saveLesson">
+                  {{ editingLesson.id ? 'Aggiorna' : 'Crea' }}
+                </button>
                 <button class="btn btn-secondary" @click="cancelEdit">Annulla</button>
               </div>
             </div>
           </div>
 
           <div v-else>
-            <div v-if="groupedLessons.length === 0" class="alert alert-info">Nessuna lezione pianificata</div>
+            <div v-if="groupedLessons.length === 0" class="alert alert-info">
+              Nessuna lezione pianificata
+            </div>
 
             <div v-for="day in groupedLessons" :key="day.date" class="mb-4">
-              <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded-top cursor-pointer" @click="toggleDay(day.date)">
+              <div
+                class="d-flex justify-content-between align-items-center bg-light p-3 rounded-top cursor-pointer"
+                @click="toggleDay(day.date)"
+              >
                 <h6 class="m-0">{{ formatDayHeader(day.date) }}</h6>
                 <i class="bi" :class="day.open ? 'bi-caret-down' : 'bi-caret-right'"></i>
               </div>
@@ -50,8 +69,12 @@
                         <small class="text-muted">{{ lesson.data }}</small>
                       </div>
                       <div class="d-flex gap-2">
-                        <button class="btn btn-warning btn-sm" @click="editLesson(lesson)"><i class="bi bi-pencil"></i></button>
-                        <button class="btn btn-danger btn-sm" @click="deleteLesson(lesson.id)"><i class="bi bi-trash"></i></button>
+                        <button class="btn btn-warning btn-sm" @click="editLesson(lesson)">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm" @click="deleteLesson(lesson.id)">
+                          <i class="bi bi-trash"></i>
+                        </button>
                       </div>
                     </div>
                     <p class="card-text mt-2 mb-0">{{ lesson.descrizione }}</p>
@@ -67,7 +90,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { Modal } from 'bootstrap'
 import lezioneService from '@/service/LezioneService.js'
 import classeService from '@/service/ClasseService.js'
@@ -75,18 +98,37 @@ import classeService from '@/service/ClasseService.js'
 const props = defineProps({ classeId: Number })
 const emit = defineEmits(['close'])
 
+const lclasseId = ref();
 const lessons = ref([])
 const groupedLessons = ref([])
 const showForm = ref(false)
 const editingLesson = ref({})
-const form = ref({ id: null, titolo: '', descrizione: '', data: '', classe: { id: props.classeId } })
+const form = ref({
+  id: null,
+    titolo: '',
+    descrizione: '',
+    data: '',
+    classe: { id: lclasseId.value },
+})
 
-const open = () => new Modal(document.getElementById('lezioniModal')).show()
+const open = (id) => {
+  lclasseId.value = id
+  form.value = {
+    id: null,
+    titolo: '',
+    descrizione: '',
+    data: '',
+    classe: { id: lclasseId.value },
+  }
+  fetchLessons()
+  console.log( "DEBUG DENTO LEZIONE: ", lclasseId.value)
+  new Modal(document.getElementById('lezioniModal')).show()
+}
 defineExpose({ open })
 
 const groupLessonsByDay = () => {
   const groups = {}
-  lessons.value.forEach(lesson => {
+  lessons.value.forEach((lesson) => {
     const dateKey = lesson.data.split('T')[0]
     if (!groups[dateKey]) groups[dateKey] = { date: dateKey, open: false, lessons: [] }
     groups[dateKey].lessons.push(lesson)
@@ -94,20 +136,20 @@ const groupLessonsByDay = () => {
   groupedLessons.value = Object.values(groups)
 }
 
-const formatDayHeader = dateString => {
+const formatDayHeader = (dateString) => {
   const date = new Date(dateString)
   const days = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
   return `${days[date.getDay()]} ${date.getDate()}/${date.getMonth() + 1}`
 }
 
-const toggleDay = date => {
-  const day = groupedLessons.value.find(d => d.date === date)
+const toggleDay = (date) => {
+  const day = groupedLessons.value.find((d) => d.date === date)
   if (day) day.open = !day.open
 }
 
 const fetchLessons = async () => {
   try {
-    lessons.value = await classeService.getLezioni(props.classeId)
+    lessons.value = await classeService.getLezioni(lclasseId.value)
     groupLessonsByDay()
   } catch (error) {
     console.error('Errore nel caricamento:', error)
@@ -116,7 +158,9 @@ const fetchLessons = async () => {
 
 const saveLesson = async () => {
   try {
-    editingLesson.value.id ? await lezioneService.update(editingLesson.value.id, form.value) : await lezioneService.save(form.value)
+    editingLesson.value.id
+      ? await lezioneService.update(editingLesson.value.id, form.value)
+      : await lezioneService.save(form.value)
     await fetchLessons()
     cancelEdit()
   } catch (error) {
@@ -124,25 +168,31 @@ const saveLesson = async () => {
   }
 }
 
-const editLesson = lesson => {
+const editLesson = (lesson) => {
   editingLesson.value = { ...lesson }
-  form.value = { id: lesson.id, titolo: lesson.titolo, descrizione: lesson.descrizione, data: lesson.data, classe: { id: props.classeId } }
+  form.value = {
+    id: lesson.id,
+    titolo: lesson.titolo,
+    descrizione: lesson.descrizione,
+    data: lesson.data,
+    classe: { id: lclasseId.value },
+  }
   showForm.value = true
 }
 
-const deleteLesson = async id => {
-  if (confirm('Confermi l\'eliminazione?')) {
+const deleteLesson = async (id) => {
+  if (confirm("Confermi l'eliminazione?")) {
     try {
       await lezioneService.deleteu(id)
       await fetchLessons()
     } catch (error) {
-      console.error('Errore durante l\'eliminazione:', error)
+      console.error("Errore durante l'eliminazione:", error)
     }
   }
 }
 
 const cancelEdit = () => {
-  form.value = { id: null, titolo: '', descrizione: '', data: '', classe: { id: props.classeId } }
+  form.value = { id: null, titolo: '', descrizione: '', data: '', classe: { id: lclasseId.value } }
   editingLesson.value = {}
   showForm.value = false
 }
@@ -154,5 +204,4 @@ const closeModal = () => {
 
 const openForm = () => (showForm.value = true)
 
-watch(() => props.classeId, fetchLessons, { immediate: true })
 </script>

@@ -125,9 +125,10 @@ const selectedClasseId = ref(null)
 const lezioneModal = ref(null)
 
 const openLezioniModal = (id) => {
+  console.log("DEBUG ID CLASSE LEZIONE: ", id);
   selectedClasseId.value = id
   if (lezioneModal.value) {
-    lezioneModal.value.open()
+    lezioneModal.value.open(id)
   }
 }
 //lezioni -e
