@@ -10,6 +10,7 @@
           <th>Data Fine</th>
           <th>Corso</th>
           <th>Docente</th>
+          <th>Mostra</th>
           <th>Azioni</th>
         </tr>
       </thead>
@@ -21,6 +22,9 @@
           <td>{{ classe.dataFine }}</td>
           <td>{{ classe.corso.titolo }}</td>
           <td>{{ classe.docente.nome }} {{ classe.docente.cognome }}</td>
+          <td>
+            <button class="btn btn-info btn-sm" @click="showDetails(classe.id)">Mostra</button>
+          </td>
           <td>
             <button class="btn btn-primary btn-sm" @click="editClasse(classe)">Modifica</button>
             <button class="btn btn-danger btn-sm" @click="deleteClasse(classe.id)">Elimina</button>
@@ -73,13 +77,37 @@
         </div>
       </div>
     </div>
+          <!-- Modal per Mostra Dettagli -->
+          <div class="modal fade" id="detailsModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Dettagli Classe</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <h6>Utenti:</h6>
+            <ul>
+              <li v-for="utente in utenti" :key="utente.id">{{ utente.nome }} - {{ utente.ruolo }}</li>
+            </ul>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+
+
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import CreaClasse from '@/components/classe/CreaClasse.vue'
+import ClasseService from '@/service/ClasseService'
+import UtenteService from '@/service/UtenteService'
 import { Modal } from 'bootstrap'
 
 const classi = ref([])
@@ -93,8 +121,11 @@ const selectedClasse = ref({
 })
 let modalInstance = null
 
+
+const utenti = ref([])
 const corsi = ref([])
 const docenti = ref([])
+let detailsModal = null
 
 const fetchCorsi = async () => {
   try {
@@ -151,6 +182,22 @@ const saveClasse = async () => {
     modalInstance.hide() // Chiude il modal
   } catch (error) {
     console.error('Errore nel salvataggio:', error)
+  }
+}
+
+const showDetails = async (id) => {
+  try {
+    const classe = await ClasseService.findById(id)
+    const studenti = await ClasseService.getStudenti(id)
+    const docente = classe.docente ? [await UtenteService.findById(classe.docente.id)] : []
+    utenti.value = [...studenti, ...docente].map(utente => ({ nome: utente.nome, ruolo: utente.ruolo }))
+
+    if (!detailsModal) {
+      detailsModal = new Modal(document.getElementById('detailsModal'))
+    }
+    detailsModal.show()
+  } catch (error) {
+    console.error('Errore nel recupero dettagli classe:', error)
   }
 }
 
