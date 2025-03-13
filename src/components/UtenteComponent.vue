@@ -23,10 +23,11 @@
           <td>{{ utente.ruolo }}</td>
           <td>{{utente.classe.map(classe => classe.nome).join(', ')}}</td>
           <td>
-            <ul>
-              <li v-for="esame in utente.esami" :key="esame.id">{{ esame.titolo }}</li>
-            </ul>
-          </td>
+  <span v-for="(esame, index) in utente.esami" :key="esame.id">
+    {{ esame.descrizione }}<span v-if="index !== utente.esami.length - 1">, </span>
+  </span>
+</td>
+
           <td>
             <button class="btn btn-primary btn-sm" @click="editUtente(utente)">Modifica</button>
             <button class="btn btn-danger btn-sm ms-2" @click="deleteUtente(utente.id)">
@@ -73,12 +74,6 @@
                 {{ classe.nome }}
               </option>
             </select>
-            <label>Esami:</label>
-            <select v-model="newUtente.esamiIds" multiple class="form-control">
-              <option v-for="esame in esami" :key="esame.id" :value="esame.id">
-                {{ esame.titolo }}
-              </option>
-            </select>
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
@@ -119,12 +114,6 @@
                 {{ classe.nome }}
               </option>
             </select>
-            <label>Esami:</label>
-            <select v-model="newUtente.esamiIds" multiple class="form-control">
-              <option v-for="esame in esami" :key="esame.id" :value="esame.id">
-                {{ esame.titolo }}
-              </option>
-            </select>
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
@@ -140,9 +129,7 @@
 import { ref, onMounted } from 'vue'
 import utenteService from '@/service/UtenteService.js'
 import { Modal } from 'bootstrap'
-import EsameService from '@/service/EsameService'
 
-const esami = ref([])
 const classi = ref([])
 const utenti = ref([])
 const selectedUtente = ref({
@@ -152,7 +139,6 @@ const selectedUtente = ref({
   email: '',
   ruolo: '',
   classiIds: [],
-  esamiIds: [],
 })
 const newUtente = ref({
   nome: '',
@@ -160,7 +146,6 @@ const newUtente = ref({
   email: '',
   ruolo: '',
   classiIds: [],
-  esamiIds: [],
 })
 
 let modalInstance = null
@@ -172,6 +157,7 @@ const fetchUtenti = async () => {
     for (let utente of utenti.value) {
       utente.classe = await utenteService.getClassi(utente.id)
       utente.esami = await utenteService.getEsami(utente.id)
+      console.log(`Esami per utente ${utente.id}:`, utente.esami)
     }
   } catch (error) {
     console.error('Errore nel recupero utenti:', error)
@@ -183,14 +169,6 @@ const fetchClassi = async () => {
     classi.value = await utenteService.findAllClassi()
   } catch (error) {
     console.error('Errore nel recupero classi:', error)
-  }
-}
-
-const fetchEsami = async () => {
-  try {
-    esami.value = await EsameService.findAll()
-  } catch (error) {
-    console.error('Errore nel recupero esami:', error)
   }
 }
 
@@ -208,7 +186,6 @@ const saveUtente = async () => {
     await utenteService.updateClassi(
       selectedUtente.value.id,
       selectedUtente.value.classiIds,
-      selectedUtente.value.esamiIds,
       false,
     )
     fetchUtenti()
@@ -223,7 +200,7 @@ const createUtente = async () => {
     await utenteService.save(newUtente.value)
     await fetchUtenti()
     createModalInstance.hide()
-    newUtente.value = { nome: '', cognome: '', email: '', ruolo: '', classiIds: [], esamiIds: [] }
+    newUtente.value = { nome: '', cognome: '', email: '', ruolo: '', classiIds: [] }
     window.location.reload()
   } catch (error) {
     console.error("Errore nella creazione dell'utente:", error)
@@ -244,7 +221,6 @@ const deleteUtente = async (id) => {
 onMounted(() => {
   fetchUtenti()
   fetchClassi()
-  fetchEsami()
   createModalInstance = new Modal(document.getElementById('createModal'))
 })
 </script>
