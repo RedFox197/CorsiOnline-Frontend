@@ -71,8 +71,8 @@
                   <div class="card-body p-3">
                     <div class="d-flex justify-content-between align-items-center">
                       <div>
-                        <h6 class="card-title mb-1">{{ lesson.title }}</h6>
-                        <small class="text-muted">{{ lesson.schedule }}</small>
+                        <h6 class="card-title mb-1">{{ lesson.titolo }}</h6>
+                        <small class="text-muted">{{ lesson.data }}</small>
                       </div>
                       <div class="d-flex gap-2">
                         <button class="btn btn-warning btn-sm" @click="editLesson(lesson)">
@@ -83,7 +83,7 @@
                         </button>
                       </div>
                     </div>
-                    <p class="card-text mt-2 mb-0">{{ lesson.description }}</p>
+                    <p class="card-text mt-2 mb-0">{{ lesson.descrizione }}</p>
                   </div>
                 </div>
               </div>
@@ -133,7 +133,7 @@ defineExpose({ open })
 const groupLessonsByDay = () => {
   const groups = {}
   lessons.value.forEach((lesson) => {
-    const dateKey = lesson.schedule.split('T')[0]
+    const dateKey = lesson.data.split('T')[0]
     if (!groups[dateKey]) {
       groups[dateKey] = {
         date: dateKey,
