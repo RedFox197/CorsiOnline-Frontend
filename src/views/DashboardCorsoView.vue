@@ -1,13 +1,8 @@
 <template>
   <div class="container mt-4">
-    <h2 class="page-title">Elenco Corsi Disponibili</h2>
+    <h2 class="page-title">Elenco Corsi Disponibili</h2> <!-- Titolo allineato a sinistra -->
 
-    <div class="d-flex justify-content-start mb-3">
-      <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createModal">
-        Aggiungi Nuovo Corso
-      </button>
-    </div>
-
+    <!-- Tabella dei corsi -->
     <table class="table table-striped">
       <thead>
         <tr>
@@ -24,11 +19,18 @@
           <td>{{ corso.descrizione }}</td>
           <td>
             <button class="btn btn-primary btn-sm" @click="openEditModal(corso)">Modifica</button>
-            <button class="btn btn-danger btn-sm" @click="deleteCorso(corso.id)">Elimina</button>
+            <button class="btn btn-danger btn-sm ms-2" @click="deleteCorso(corso.id)">Elimina</button>
           </td>
         </tr>
       </tbody>
     </table>
+
+    <!-- Bottone Aggiungi Nuovo Corso SOTTO la tabella -->
+    <div class="mt-3">
+      <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createModal">
+        Aggiungi Nuovo Corso
+      </button>
+    </div>
 
     <!-- Modal per Creare un Corso -->
     <div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
@@ -90,8 +92,7 @@ const editCorso = ref({ id: null, titolo: "", descrizione: "" });
 // Recupera i corsi al caricamento
 const fetchCorsi = async () => {
   try {
-    const response = await CorsoService.findAll();
-    corsi.value = response;
+    corsi.value = await CorsoService.findAll();
   } catch (error) {
     console.error("Errore nel recupero dei corsi:", error);
   }
@@ -100,11 +101,7 @@ const fetchCorsi = async () => {
 // Creazione di un nuovo corso
 const createCorso = async () => {
   try {
-    const corsoData = {
-      titolo: newCorso.value.titolo,
-      descrizione: newCorso.value.descrizione,
-    };
-    await CorsoService.save(corsoData);
+    await CorsoService.save(newCorso.value);
     window.location.reload(); // Ricarica la pagina dopo la creazione
   } catch (error) {
     console.error("Errore nella creazione del corso", error);
@@ -121,11 +118,7 @@ const openEditModal = (corso) => {
 // Modifica di un corso
 const updateCorso = async () => {
   try {
-    const corsoData = {
-      titolo: editCorso.value.titolo,
-      descrizione: editCorso.value.descrizione,
-    };
-    await CorsoService.update(editCorso.value.id, corsoData);
+    await CorsoService.update(editCorso.value.id, editCorso.value);
     window.location.reload(); // Ricarica la pagina dopo la modifica
   } catch (error) {
     console.error("Errore nella modifica del corso:", error);
@@ -144,9 +137,7 @@ const deleteCorso = async (id) => {
   }
 };
 
-onMounted(() => {
-  fetchCorsi();
-});
+onMounted(fetchCorsi);
 </script>
 
 <style scoped>
@@ -157,12 +148,17 @@ onMounted(() => {
 
 .page-title {
   font-size: 1.75rem;
-  font-weight: bold;
+  text-align: left; /* Allineato a sinistra come la pagina Classi */
   margin-bottom: 20px;
 }
 
 .btn-success {
   background-color: #198754;
   border-color: #198754;
+}
+
+.table {
+  margin-top: 20px;
+  text-align: left;
 }
 </style>
