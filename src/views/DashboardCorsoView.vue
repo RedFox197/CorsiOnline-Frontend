@@ -14,7 +14,6 @@
           <th>ID</th>
           <th>Nome Corso</th>
           <th>Descrizione</th>
-          <th>Classi Associate</th>
           <th>Azioni</th>
         </tr>
       </thead>
@@ -23,12 +22,6 @@
           <td>{{ corso.id }}</td>
           <td>{{ corso.titolo }}</td>
           <td>{{ corso.descrizione }}</td>
-          <td>
-            <ul v-if="corso.classi && corso.classi.length">
-              <li v-for="classe in corso.classi" :key="classe.id">{{ classe.nome }}</li>
-            </ul>
-            <span v-else>Nessuna classe associata</span>
-          </td>
           <td>
             <button class="btn btn-primary btn-sm" @click="openEditModal(corso)">Modifica</button>
             <button class="btn btn-danger btn-sm" @click="deleteCorso(corso.id)">Elimina</button>
@@ -51,13 +44,6 @@
 
             <label>Descrizione:</label>
             <textarea v-model="newCorso.descrizione" class="form-control"></textarea>
-
-            <label>Seleziona Classe:</label>
-            <select v-model="newCorso.classeId" class="form-control">
-              <option v-for="classe in classi" :key="classe.id" :value="classe.id">
-                {{ classe.nome }}
-              </option>
-            </select>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
@@ -81,13 +67,6 @@
 
             <label>Descrizione:</label>
             <textarea v-model="editCorso.descrizione" class="form-control"></textarea>
-
-            <label>Seleziona Classe:</label>
-            <select v-model="editCorso.classeId" class="form-control">
-              <option v-for="classe in classi" :key="classe.id" :value="classe.id">
-                {{ classe.nome }}
-              </option>
-            </select>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
@@ -102,15 +81,13 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import CorsoService from "@/service/CorsoService";
-import ClasseService from "@/service/ClasseService";
 import { Modal } from "bootstrap";
 
 const corsi = ref([]);
-const classi = ref([]);
-const newCorso = ref({ titolo: "", descrizione: "", classeId: null });
-const editCorso = ref({ id: null, titolo: "", descrizione: "", classeId: null });
+const newCorso = ref({ titolo: "", descrizione: "" });
+const editCorso = ref({ id: null, titolo: "", descrizione: "" });
 
-// Recupera i corsi e le classi al caricamento
+// Recupera i corsi al caricamento
 const fetchCorsi = async () => {
   try {
     const response = await CorsoService.findAll();
@@ -120,22 +97,12 @@ const fetchCorsi = async () => {
   }
 };
 
-const fetchClassi = async () => {
-  try {
-    const response = await ClasseService.findAll();
-    classi.value = response;
-  } catch (error) {
-    console.error("Errore nel recupero delle classi:", error);
-  }
-};
-
 // Creazione di un nuovo corso
 const createCorso = async () => {
   try {
     const corsoData = {
       titolo: newCorso.value.titolo,
       descrizione: newCorso.value.descrizione,
-      classi: [{ id: newCorso.value.classeId }],
     };
     await CorsoService.save(corsoData);
     window.location.reload(); // Ricarica la pagina dopo la creazione
@@ -146,7 +113,7 @@ const createCorso = async () => {
 
 // Apertura modale modifica
 const openEditModal = (corso) => {
-  editCorso.value = { ...corso, classeId: corso.classi?.[0]?.id || null };
+  editCorso.value = { ...corso };
   const modalElement = document.getElementById("editModal");
   new Modal(modalElement).show();
 };
@@ -157,7 +124,6 @@ const updateCorso = async () => {
     const corsoData = {
       titolo: editCorso.value.titolo,
       descrizione: editCorso.value.descrizione,
-      classi: [{ id: editCorso.value.classeId }],
     };
     await CorsoService.update(editCorso.value.id, corsoData);
     window.location.reload(); // Ricarica la pagina dopo la modifica
@@ -180,6 +146,23 @@ const deleteCorso = async (id) => {
 
 onMounted(() => {
   fetchCorsi();
-  fetchClassi();
 });
 </script>
+
+<style scoped>
+.container {
+  max-width: 80%;
+  margin: auto;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.btn-success {
+  background-color: #198754;
+  border-color: #198754;
+}
+</style>
