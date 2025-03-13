@@ -105,6 +105,8 @@
       </div>
     </div>
   </div>
+
+  <lezione-modal/>
 </template>
 
 <script setup>
@@ -116,6 +118,7 @@ import { Modal } from 'bootstrap'
 import utenteService from '@/service/UtenteService'
 import classeService from '@/service/ClasseService'
 import corsoService from '@/service/CorsoService.js'
+import LezioneModal from '@/components/classe/LezioneModal.vue'
 
 const classi = ref([])
 const selectedClasse = ref({
