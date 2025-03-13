@@ -1,5 +1,11 @@
 <template>
-  <div class="modal fade show" tabindex="-1" style="display: block">
+  <div
+    class="modal fade"
+    id="lezioniModal"
+    tabindex="-1"
+    aria-labelledby="lezioniModalLabel"
+    aria-hidden="true"
+  >
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
@@ -26,7 +32,12 @@
               </div>
               <div class="mb-3">
                 <label>Orario</label>
-                <input v-model="form.schedule" type="datetime-local" class="form-control" required />
+                <input
+                  v-model="form.schedule"
+                  type="datetime-local"
+                  class="form-control"
+                  required
+                />
               </div>
               <div class="d-flex gap-2">
                 <button class="btn btn-success" @click="saveLesson">
