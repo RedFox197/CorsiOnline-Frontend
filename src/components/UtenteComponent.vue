@@ -73,6 +73,12 @@
                 {{ classe.nome }}
               </option>
             </select>
+            <label>Esami:</label>
+            <select v-model="newUtente.esamiIds" multiple class="form-control">
+              <option v-for="esame in esami" :key="esame.id" :value="esame.id">
+                {{ esame.titolo }}
+              </option>
+            </select>
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
@@ -113,6 +119,12 @@
                 {{ classe.nome }}
               </option>
             </select>
+            <label>Esami:</label>
+            <select v-model="newUtente.esamiIds" multiple class="form-control">
+              <option v-for="esame in esami" :key="esame.id" :value="esame.id">
+                {{ esame.titolo }}
+              </option>
+            </select>
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
@@ -128,7 +140,9 @@
 import { ref, onMounted } from 'vue'
 import utenteService from '@/service/UtenteService.js'
 import { Modal } from 'bootstrap'
+import EsameService from '@/service/EsameService'
 
+const esami = ref([])
 const classi = ref([])
 const utenti = ref([])
 const selectedUtente = ref({
@@ -138,6 +152,7 @@ const selectedUtente = ref({
   email: '',
   ruolo: '',
   classiIds: [],
+  esamiIds: [],
 })
 const newUtente = ref({
   nome: '',
@@ -145,6 +160,7 @@ const newUtente = ref({
   email: '',
   ruolo: '',
   classiIds: [],
+  esamiIds: [],
 })
 
 let modalInstance = null
@@ -170,6 +186,14 @@ const fetchClassi = async () => {
   }
 }
 
+const fetchEsami = async () => {
+  try {
+    esami.value = await EsameService.findAll()
+  } catch (error) {
+    console.error('Errore nel recupero esami:', error)
+  }
+}
+
 const editUtente = (utente) => {
   selectedUtente.value = { ...utente }
   if (!modalInstance) {
@@ -184,6 +208,7 @@ const saveUtente = async () => {
     await utenteService.updateClassi(
       selectedUtente.value.id,
       selectedUtente.value.classiIds,
+      selectedUtente.value.esamiIds,
       false,
     )
     fetchUtenti()
@@ -198,7 +223,7 @@ const createUtente = async () => {
     await utenteService.save(newUtente.value)
     await fetchUtenti()
     createModalInstance.hide()
-    newUtente.value = { nome: '', cognome: '', email: '', ruolo: '', classiIds: [] }
+    newUtente.value = { nome: '', cognome: '', email: '', ruolo: '', classiIds: [], esamiIds: [] }
     window.location.reload()
   } catch (error) {
     console.error("Errore nella creazione dell'utente:", error)
@@ -219,6 +244,7 @@ const deleteUtente = async (id) => {
 onMounted(() => {
   fetchUtenti()
   fetchClassi()
+  fetchEsami()
   createModalInstance = new Modal(document.getElementById('createModal'))
 })
 </script>
