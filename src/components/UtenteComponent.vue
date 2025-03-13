@@ -68,12 +68,20 @@
               <option value="STUDENTE">Studente</option>
               <option value="DOCENTE">Docente</option>
             </select>
-            <label>Classe:</label>
-            <select v-model="selectedUtente.classiIds" multiple class="form-control">
-              <option v-for="classe in classi" :key="classe.id" :value="classe.id">
-                {{ classe.nome }}
-              </option>
-            </select>
+            <label>Classi:</label>
+<div v-for="classe in classi" :key="classe.id" class="form-check">
+  <input
+    type="checkbox"
+    class="form-check-input"
+    :id="'classe-' + classe.id"
+    :value="classe.id"
+    v-model="selectedUtente.classiIds"
+  />
+  <label class="form-check-label" :for="'classe-' + classe.id">
+    {{ classe.nome }}
+  </label>
+</div>
+
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
@@ -172,28 +180,50 @@ const fetchClassi = async () => {
   }
 }
 
-const editUtente = (utente) => {
+const editUtente = async (utente) => {
   selectedUtente.value = { ...utente }
+  const classiUtente = await utenteService.getClassi(utente.id)
+  selectedUtente.value.classiIds = classiUtente.map(cl => cl.id) || []
+
   if (!modalInstance) {
     modalInstance = new Modal(document.getElementById('editModal'))
   }
   modalInstance.show()
 }
 
+
+
 const saveUtente = async () => {
   try {
-    await utenteService.update(selectedUtente.value.id, selectedUtente.value)
-    await utenteService.updateClassi(
-      selectedUtente.value.id,
-      selectedUtente.value.classiIds,
-      false,
-    )
-    fetchUtenti()
-    modalInstance.hide()
+    await utenteService.update(selectedUtente.value.id, selectedUtente.value);
+
+
+    const classiUtente = await utenteService.getClassi(selectedUtente.value.id);
+    const classiUtenteIds = classiUtente.map(cl => cl.id);
+
+
+    const classiDaRimuovere = classiUtenteIds.filter(id => !selectedUtente.value.classiIds.includes(id));
+
+    const classiDaAggiungere = selectedUtente.value.classiIds.filter(id => !classiUtenteIds.includes(id));
+
+
+    if (classiDaRimuovere.length > 0) {
+      await utenteService.updateClassi(selectedUtente.value.id, classiDaRimuovere, true);
+    }
+
+
+    if (classiDaAggiungere.length > 0) {
+      await utenteService.updateClassi(selectedUtente.value.id, classiDaAggiungere, false);
+    }
+
+    await fetchUtenti();
+    modalInstance.hide();
   } catch (error) {
-    console.error('Errore nel salvataggio:', error)
+    console.error('Errore nel salvataggio:', error);
   }
-}
+};
+
+
 
 const createUtente = async () => {
   try {

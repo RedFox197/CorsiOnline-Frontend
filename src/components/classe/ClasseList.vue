@@ -192,22 +192,26 @@ const saveClasse = async () => {
 
 const showDetails = async (id) => {
   try {
-    const classe = await ClasseService.findById(id)
-    const studenti = await ClasseService.getStudenti(id)
-    const docente = classe.docente ? [await UtenteService.findById(classe.docente.id)] : []
-    utenti.value = [...studenti, ...docente].map((utente) => ({
-      nome: utente.nome,
-      ruolo: utente.ruolo,
-    }))
+    const classe = await ClasseService.findById(id);
+    const studenti = await ClasseService.getStudenti(id);
+    const docente = classe.docente ? [await UtenteService.findById(classe.docente.id)] : [];
+
+    utenti.value = [...studenti, ...docente]
+      .map((utente) => ({
+        nome: utente.nome,
+        ruolo: utente.ruolo,
+      }))
+      .sort((a, b) => a.ruolo.localeCompare(b.ruolo));
 
     if (!detailsModal) {
-      detailsModal = new Modal(document.getElementById('detailsModal'))
+      detailsModal = new Modal(document.getElementById('detailsModal'));
     }
-    detailsModal.show()
+    detailsModal.show();
   } catch (error) {
-    console.error('Errore nel recupero dettagli classe:', error)
+    console.error('Errore nel recupero dettagli classe:', error);
   }
-}
+};
+
 
 onMounted(() => {
   fetchClassi()
