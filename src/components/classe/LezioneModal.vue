@@ -101,6 +101,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import axios from 'axios'
+import { Modal } from 'bootstrap'
 
 const props = defineProps({
   classeId: {
@@ -120,6 +121,13 @@ const form = ref({
   schedule: ''
 })
 const editingLesson = ref({})
+
+// Apre il modal manualmente
+const open = () => {
+  const modalInstance = new Modal(document.getElementById('lezioniModal'))
+  modalInstance.show()
+}
+defineExpose({ open })
 
 // Raggruppa le lezioni per giorno
 const groupLessonsByDay = () => {

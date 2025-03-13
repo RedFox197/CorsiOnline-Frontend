@@ -26,6 +26,7 @@
             <button class="btn btn-info btn-sm" @click="showDetails(classe.id)">Mostra</button>
           </td>
           <td>
+            <button class="btn btn-warning btn-sm" @click="openLezioniModal(classe.id)">Lezioni</button>
             <button class="btn btn-primary btn-sm" @click="editClasse(classe)">Modifica</button>
             <button class="btn btn-danger btn-sm" @click="deleteClasse(classe.id)">Elimina</button>
           </td>
@@ -104,8 +105,7 @@
         </div>
       </div>
     </div>
-
-    <lezione-modal/>
+    <LezioneModal ref="lezioneModal" :classeId="selectedClasseId" />
   </div>
 </template>
 
@@ -119,6 +119,18 @@ import utenteService from '@/service/UtenteService'
 import classeService from '@/service/ClasseService'
 import corsoService from '@/service/CorsoService.js'
 import LezioneModal from '@/components/classe/LezioneModal.vue'
+
+//lezioni
+const selectedClasseId = ref(null)
+const lezioneModal = ref(null)
+
+const openLezioniModal = (id) => {
+  selectedClasseId.value = id
+  if (lezioneModal.value) {
+    lezioneModal.value.open()
+  }
+}
+//lezioni -e
 
 const classi = ref([])
 const selectedClasse = ref({
