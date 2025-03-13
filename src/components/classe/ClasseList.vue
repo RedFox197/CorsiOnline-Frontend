@@ -104,9 +104,9 @@
         </div>
       </div>
     </div>
-  </div>
 
-  <lezione-modal/>
+    <lezione-modal/>
+  </div>
 </template>
 
 <script setup>
