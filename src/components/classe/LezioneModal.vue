@@ -10,7 +10,13 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">Calendario Lezioni - Classe {{ classeId }}</h5>
-          <button type="button" class="btn-close" @click="closeModal"></button>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+            @click="closeModal"
+          ></button>
         </div>
         <div class="modal-body">
           <!-- Pulsante Aggiungi Lezione -->
@@ -24,20 +30,15 @@
               <h5>{{ editingLesson.id ? 'Modifica Lezione' : 'Nuova Lezione' }}</h5>
               <div class="mb-3">
                 <label>Titolo</label>
-                <input v-model="form.title" class="form-control" required />
+                <input v-model="form.titolo" class="form-control" required />
               </div>
               <div class="mb-3">
                 <label>Descrizione</label>
-                <textarea v-model="form.description" class="form-control" rows="3"></textarea>
+                <textarea v-model="form.descrizione" class="form-control" rows="3"></textarea>
               </div>
               <div class="mb-3">
                 <label>Orario</label>
-                <input
-                  v-model="form.schedule"
-                  type="datetime-local"
-                  class="form-control"
-                  required
-                />
+                <input v-model="form.data" type="datetime-local" class="form-control" required />
               </div>
               <div class="d-flex gap-2">
                 <button class="btn btn-success" @click="saveLesson">
@@ -66,11 +67,7 @@
 
               <!-- Contenuto Giorno -->
               <div v-show="day.open" class="border border-top-0 p-3 rounded-bottom">
-                <div
-                  v-for="lesson in day.lessons"
-                  :key="lesson.id"
-                  class="card mb-2 shadow-sm"
-                >
+                <div v-for="lesson in day.lessons" :key="lesson.id" class="card mb-2 shadow-sm">
                   <div class="card-body p-3">
                     <div class="d-flex justify-content-between align-items-center">
                       <div>
@@ -102,12 +99,13 @@
 import { ref, watch } from 'vue'
 import axios from 'axios'
 import { Modal } from 'bootstrap'
+import lezioneService from '@/service/LezioneService.js'
 
 const props = defineProps({
   classeId: {
     type: Number,
-    required: true
-  }
+    required: true,
+  },
 })
 
 const emit = defineEmits(['close'])
@@ -116,9 +114,11 @@ const lessons = ref([])
 const groupedLessons = ref([])
 const showForm = ref(false)
 const form = ref({
-  title: '',
-  description: '',
-  schedule: ''
+  id: null,
+  titolo: '',
+  descrizione: '',
+  data: '',
+  classe: { id: props.classeId },
 })
 const editingLesson = ref({})
 
@@ -132,13 +132,13 @@ defineExpose({ open })
 // Raggruppa le lezioni per giorno
 const groupLessonsByDay = () => {
   const groups = {}
-  lessons.value.forEach(lesson => {
+  lessons.value.forEach((lesson) => {
     const dateKey = lesson.schedule.split('T')[0]
     if (!groups[dateKey]) {
       groups[dateKey] = {
         date: dateKey,
         open: false,
-        lessons: []
+        lessons: [],
       }
     }
     groups[dateKey].lessons.push(lesson)
@@ -150,12 +150,12 @@ const groupLessonsByDay = () => {
 const formatDayHeader = (dateString) => {
   const date = new Date(dateString)
   const days = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
-  return `${days[date.getDay()]} ${date.getDate()}/${date.getMonth()+1}`
+  return `${days[date.getDay()]} ${date.getDate()}/${date.getMonth() + 1}`
 }
 
 // Toggle espansione giorno
 const toggleDay = (date) => {
-  const day = groupedLessons.value.find(d => d.date === date)
+  const day = groupedLessons.value.find((d) => d.date === date)
   if (day) day.open = !day.open
 }
 
@@ -174,15 +174,10 @@ const fetchLessons = async () => {
 const saveLesson = async () => {
   try {
     if (editingLesson.value.id) {
-      await axios.put(
-        `http://localhost:8080/api/v1/lezioni/${editingLesson.value.id}`,
-        form.value
-      )
+      await axios.put(`http://localhost:8080/api/v1/lezioni/${editingLesson.value.id}`, form.value)
     } else {
-      await axios.post(
-        `http://localhost:8080/api/v1/classi/${props.classeId}/lezioni`,
-        form.value
-      )
+      //await axios.post(`http://localhost:8080/api/v1/classi/${props.classeId}/lezioni`, form.value)
+      await lezioneService.save(form.value)
     }
     await fetchLessons()
     cancelEdit()
@@ -194,29 +189,42 @@ const saveLesson = async () => {
 // Avvia modifica lezione
 const editLesson = (lesson) => {
   editingLesson.value = { ...lesson }
-  form.value = {
+  /*form.value = {
     title: lesson.title,
     description: lesson.description,
-    schedule: lesson.schedule.slice(0, 16)
+    schedule: lesson.schedule.slice(0, 16),
+  }*/
+  form.value = {
+    id: null,
+    titolo: '',
+    descrizione: '',
+    data: '',
+    classe: { id: props.classeId },
   }
   showForm.value = true
 }
 
 // Elimina lezione
 const deleteLesson = async (id) => {
-  if (confirm('Confermi l\'eliminazione?')) {
+  if (confirm("Confermi l'eliminazione?")) {
     try {
       await axios.delete(`http://localhost:8080/api/v1/lezioni/${id}`)
       await fetchLessons()
     } catch (error) {
-      console.error('Errore durante l\'eliminazione:', error)
+      console.error("Errore durante l'eliminazione:", error)
     }
   }
 }
 
 // Reset form
 const cancelEdit = () => {
-  form.value = { title: '', description: '', schedule: '' }
+  form.value = {
+    id: null,
+    titolo: '',
+    descrizione: '',
+    data: '',
+    classe: { id: props.classeId },
+  }
   editingLesson.value = {}
   showForm.value = false
 }
@@ -233,10 +241,14 @@ const openForm = () => {
 }
 
 // Aggiorna quando cambia la classe
-watch(() => props.classeId, (newVal) => {
-  if (newVal) {
-    fetchLessons()
-    cancelEdit()
-  }
-}, { immediate: true })
+watch(
+  () => props.classeId,
+  (newVal) => {
+    if (newVal) {
+      fetchLessons()
+      cancelEdit()
+    }
+  },
+  { immediate: true },
+)
 </script>
