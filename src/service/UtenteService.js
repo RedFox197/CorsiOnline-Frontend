@@ -43,6 +43,16 @@ async function findAll() {
 
 /**
  * Recupera tutti gli utenti
+ * @param ruolo {string}
+ * @returns {Promise<Array<Utente>>}
+ */
+async function findByRuolo(ruolo) {
+  const response = await apiClient.get("?ruolo=" + ruolo);
+  return response.data;
+}
+
+/**
+ * Recupera tutti gli utenti
  * @param id {number}
  * @returns {Promise<Utente>}
  */
