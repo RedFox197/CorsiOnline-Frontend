@@ -97,9 +97,9 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import axios from 'axios'
 import { Modal } from 'bootstrap'
 import lezioneService from '@/service/LezioneService.js'
+import classeService from '@/service/ClasseService.js'
 
 const props = defineProps({
   classeId: {
@@ -162,8 +162,8 @@ const toggleDay = (date) => {
 // Recupera le lezioni della classe
 const fetchLessons = async () => {
   try {
-    const res = await axios.get(`http://localhost:8080/api/v1/classi/${props.classeId}/lezioni`)
-    lessons.value = res.data
+    //const res = await axios.get(`http://localhost:8080/api/v1/classi/${props.classeId}/lezioni`)
+    lessons.value = await classeService.getLezioni(props.classeId)
     groupLessonsByDay()
   } catch (error) {
     console.error('Errore nel caricamento:', error)
@@ -174,7 +174,8 @@ const fetchLessons = async () => {
 const saveLesson = async () => {
   try {
     if (editingLesson.value.id) {
-      await axios.put(`http://localhost:8080/api/v1/lezioni/${editingLesson.value.id}`, form.value)
+      //await axios.put(`http://localhost:8080/api/v1/lezioni/${editingLesson.value.id}`, form.value)
+      await lezioneService.update(editingLesson.value.id, form.value)
     } else {
       //await axios.post(`http://localhost:8080/api/v1/classi/${props.classeId}/lezioni`, form.value)
       await lezioneService.save(form.value)
@@ -195,10 +196,10 @@ const editLesson = (lesson) => {
     schedule: lesson.schedule.slice(0, 16),
   }*/
   form.value = {
-    id: null,
-    titolo: '',
-    descrizione: '',
-    data: '',
+    id: lesson.id,
+    titolo: lesson.titolo,
+    descrizione: lesson.descrizione,
+    data: lesson.data,
     classe: { id: props.classeId },
   }
   showForm.value = true
@@ -208,7 +209,8 @@ const editLesson = (lesson) => {
 const deleteLesson = async (id) => {
   if (confirm("Confermi l'eliminazione?")) {
     try {
-      await axios.delete(`http://localhost:8080/api/v1/lezioni/${id}`)
+      //await axios.delete(`http://localhost:8080/api/v1/lezioni/${id}`)
+      await lezioneService.deleteu(id);
       await fetchLessons()
     } catch (error) {
       console.error("Errore durante l'eliminazione:", error)
