@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h1>Benvenuto nel Gestionale Corsi</h1>
+    <h1>Benvenuto nel Gestionale Corsi Quackademy</h1>
     <p class="intro-text">Qui puoi gestire utenti, classi, corsi ed esami. Clicca su una delle voci per scoprire come fare.</p>
 
     <div class="sections">
