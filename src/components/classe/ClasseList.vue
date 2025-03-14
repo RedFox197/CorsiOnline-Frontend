@@ -26,8 +26,8 @@
             <button class="btn btn-info btn-sm" @click="showDetails(classe.id)">Mostra</button>
           </td>
           <td>
-            <button class="btn btn-warning btn-sm" @click="openLezioniModal(classe.id)">Lezioni</button>
-            <button class="btn btn-primary btn-sm" @click="editClasse(classe)">Modifica</button>
+            <button class="btn btn-warning btn-sm me-2" @click="openLezioniModal(classe.id)">Lezioni</button>
+            <button class="btn btn-primary btn-sm me-2" @click="editClasse(classe)">Modifica</button>
             <button class="btn btn-danger btn-sm" @click="deleteClasse(classe.id)">Elimina</button>
           </td>
         </tr>
@@ -230,3 +230,114 @@ onMounted(() => {
   fetchClassi()
 })
 </script>
+
+<style scoped>
+/* Stile generale */
+body {
+  background-color: #f4f4f4;
+  font-family: 'Poppins', sans-serif;
+  color: #333;
+}
+
+.container {
+  max-width: 85%;
+  margin: auto;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+h2 {
+  color: #222;
+  text-align: center;
+  font-size: 22px;
+  margin-bottom: 20px;
+}
+
+/* Tabelle */
+.table, .table-striped {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th, .table-striped th {
+  background-color: #0dbc2d;
+  color: white;
+  padding: 10px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.table td, .table-striped td {
+  background: #fff;
+  padding: 10px;
+  border-top: 1px solid #ddd;
+}
+
+.table tbody tr:hover, .table-striped tbody tr:hover {
+  background: #f1f1f1;
+}
+
+/* Pulsanti */
+.btn {
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-weight: 500;
+  transition: background 0.2s ease-in-out;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border: none;
+  color: white;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  border: none;
+  color: white;
+}
+
+.btn-success {
+  background-color: #0dbc2d;
+  border-color: #0dbc2d;
+}
+
+.btn-success:hover {
+  background-color: #0a9a24;
+  border-color: #0a9a24;
+}
+
+
+/* Modali */
+.modal-content {
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.modal-header {
+  background: #007bff;
+  color: white;
+  border-radius: 8px 8px 0 0;
+  font-weight: bold;
+}
+
+/* Input e Select */
+.form-control {
+  border-radius: 4px;
+  padding: 10px;
+  border: 1px solid #ced4da;
+}
+
+.form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 3px rgba(0, 123, 255, 0.3);
+}
+
+/* Checkbox */
+.form-check-input:checked {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+</style>
