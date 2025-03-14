@@ -130,13 +130,13 @@ onMounted(() => {
 <style scoped>
 
 .btn-success {
-  background-color: #0dbc2d;
-  border-color: #0dbc2d;
+  background-color: #28a745;
+  border-color: #28a745;
 }
 
 .btn-success:hover {
-  background-color: #0a9a24;
-  border-color: #0a9a24;
+  background-color: #28a745;
+  border-color: #28a745;
 }
 
 </style>

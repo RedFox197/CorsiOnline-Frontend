@@ -286,7 +286,7 @@ h2 {
 }
 
 .table th {
-  background-color: #0dbc2d;
+  background-color: #28a745;
   color: white;
   padding: 10px;
   text-align: left;
