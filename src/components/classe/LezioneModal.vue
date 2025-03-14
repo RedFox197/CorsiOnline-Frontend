@@ -19,15 +19,19 @@
           ></button>
         </div>
         <div class="modal-body">
+          <!-- pulsante per aprire il form , quando clicco eseguie la funzione openForm-->
           <button class="btn btn-primary mb-3" @click="openForm">
             <i class="bi bi-plus-circle"></i> Aggiungi Lezione
           </button>
 
+          <!-- form che mostro solo se la variabile showform dice che è attivo -->
           <div v-if="showForm" class="card mb-3">
             <div class="card-body">
+              <!-- dato che aggiornamento e modfica sono uguali l ho gestata con un ternary operator -->
               <h5>{{ editingLesson.id ? 'Modifica Lezione' : 'Nuova Lezione' }}</h5>
               <div class="mb-3">
                 <label>Titolo</label>
+                <!--ho mappato tutti i vari valori con il vmodel così che l'oggetto form sia direttamente aggiornato -->
                 <input v-model="form.titolo" class="form-control" required />
               </div>
               <div class="mb-3">
@@ -39,14 +43,17 @@
                 <input v-model="form.data" type="datetime-local" class="form-control" required />
               </div>
               <div class="d-flex gap-2">
+                <!-- pulsante per salvare la lezione, al click vado a chiamare la funzione di salvataggio -->
                 <button class="btn btn-success" @click="saveLesson">
                   {{ editingLesson.id ? 'Aggiorna' : 'Crea' }}
                 </button>
+                <!-- pulsante per annullare la modifica -->
                 <button class="btn btn-secondary" @click="cancelEdit">Annulla</button>
               </div>
             </div>
           </div>
 
+          <!-- SE non mostro il form allora mostro il calendario -->
           <div v-else>
             <div v-if="groupedLessons.length === 0" class="alert alert-info">
               Nessuna lezione pianificata
@@ -111,6 +118,7 @@ const form = ref({
     classe: { id: lclasseId.value },
 })
 
+//lo eseguo collegato al component classe di luigi. così imposto un form vuoto direttamente con l'id della classe e prendo dal db le lezioni
 const open = (id) => {
   lclasseId.value = id
   form.value = {
@@ -124,8 +132,10 @@ const open = (id) => {
   console.log( "DEBUG DENTO LEZIONE: ", lclasseId.value)
   new Modal(document.getElementById('lezioniModal')).show()
 }
+//usato per far usare a luigi il mio metodo open
 defineExpose({ open })
 
+//strumento suggerito da ai
 const groupLessonsByDay = () => {
   const groups = {}
   lessons.value.forEach((lesson) => {
@@ -136,17 +146,21 @@ const groupLessonsByDay = () => {
   groupedLessons.value = Object.values(groups)
 }
 
+//strumento suggerito da ai
 const formatDayHeader = (dateString) => {
   const date = new Date(dateString)
   const days = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
   return `${days[date.getDay()]} ${date.getDate()}/${date.getMonth() + 1}`
 }
 
+//strumento suggerito da ai
 const toggleDay = (date) => {
   const day = groupedLessons.value.find((d) => d.date === date)
   if (day) day.open = !day.open
 }
 
+//uso il classe service in questo caso per prendere le lezioni per avere coerenza con l'api strutturata in gruppo
+// api/v1/classi/{id}/lezioni dalla classe prendo una risorsa che sono le lezioni
 const fetchLessons = async () => {
   try {
     lessons.value = await classeService.getLezioni(lclasseId.value)
@@ -202,6 +216,7 @@ const closeModal = () => {
   cancelEdit()
 }
 
+//imposto semplice showfrom a true quindi si aggiorna la pagian ed essendo true, appare il form
 const openForm = () => (showForm.value = true)
 
 </script>
