@@ -178,6 +178,13 @@ h2 {
   font-size: 14px;
 }
 
+.page-title {
+  font-size: 1.3rem;
+  text-align: center; /* Centrato */
+  margin-bottom: 20px;
+}
+
+
 .table td, .table-striped td {
   background: #fff;
   padding: 10px;
